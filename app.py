@@ -17,10 +17,7 @@ assets_data = load_data()
 # Trang chủ
 @app.route("/")
 def home():
-    return """
-    <h1>Demo hệ thống AIMS</h1>
-    <p>Hệ thống đang hoạt động.</p>
-    """
+    return render_template("index.html")
 
 # Trang hiển thị tài sản khi quét QR
 @app.route("/asset/<asset_id>")
@@ -38,3 +35,4 @@ import os
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+

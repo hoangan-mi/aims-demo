@@ -1,129 +1,133 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <title>AIMS - Asset Management System</title>
+<meta charset="UTF-8">
+<title>AIMS - Asset Management System</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <style>
-        body {
-            font-family: "Segoe UI", Arial, sans-serif;
-            background: linear-gradient(135deg, #eef2f7, #f8fafc);
-            margin: 0;
-            padding: 0;
-        }
+<style>
+body {
+    margin: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #f1f5f9;
+}
 
-        .container {
-            max-width: 1000px;
-            margin: 80px auto;
-            background: white;
-            padding: 50px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-        }
+/* ===== SIDEBAR ===== */
+.sidebar {
+    width: 250px;
+    height: 100vh;
+    background: linear-gradient(180deg, #0f172a, #1e293b);
+    color: white;
+    position: fixed;
+    left: 0;
+    top: 0;
+    padding-top: 30px;
+}
 
-        h1 {
-            color: #1e293b;
-            margin-bottom: 10px;
-        }
+.sidebar h2 {
+    text-align: center;
+    margin-bottom: 40px;
+    font-weight: 600;
+}
 
-        .subtitle {
-            color: #64748b;
-            margin-bottom: 30px;
-        }
+.sidebar a {
+    display: block;
+    padding: 15px 25px;
+    color: #cbd5e1;
+    text-decoration: none;
+    transition: 0.3s;
+}
 
-        .status {
-            background: #ecfdf5;
-            color: #047857;
-            padding: 12px 18px;
-            border-radius: 10px;
-            font-weight: 600;
-            display: inline-block;
-            margin-bottom: 30px;
-        }
+.sidebar a:hover {
+    background: #334155;
+    color: white;
+}
 
-        .btn-group {
-            margin-bottom: 40px;
-        }
+/* ===== CONTENT ===== */
+.content {
+    margin-left: 250px;
+    padding: 60px;
+}
 
-        .btn {
-            display: inline-block;
-            padding: 12px 22px;
-            margin-right: 15px;
-            background: #2563eb;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 600;
-            transition: 0.2s;
-        }
+h1 {
+    color: #0f172a;
+    margin-bottom: 10px;
+}
 
-        .btn:hover {
-            background: #1d4ed8;
-        }
+.subtitle {
+    color: #64748b;
+    margin-bottom: 30px;
+}
 
-        .btn.secondary {
-            background: #0ea5e9;
-        }
+.status {
+    background: #dcfce7;
+    color: #166534;
+    padding: 14px 20px;
+    border-radius: 12px;
+    display: inline-block;
+    font-weight: 600;
+    margin-bottom: 40px;
+}
 
-        .btn.secondary:hover {
-            background: #0284c7;
-        }
+/* ===== BUTTON ===== */
+.btn {
+    display: inline-block;
+    padding: 14px 24px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    margin-right: 15px;
+    transition: 0.3s;
+}
 
-        .features {
-            margin-top: 30px;
-        }
+.btn.primary {
+    background: #2563eb;
+    color: white;
+}
 
-        .features h3 {
-            margin-bottom: 15px;
-            color: #1e293b;
-        }
+.btn.primary:hover {
+    background: #1d4ed8;
+}
 
-        .features ul {
-            padding-left: 20px;
-            color: #475569;
-            line-height: 1.8;
-        }
+.btn.secondary {
+    background: #0ea5e9;
+    color: white;
+}
 
-        .footer {
-            margin-top: 40px;
-            font-size: 14px;
-            color: #94a3b8;
-        }
-    </style>
+.btn.secondary:hover {
+    background: #0284c7;
+}
+</style>
 </head>
 
 <body>
 
-<div class="container">
+<!-- Sidebar -->
+<div class="sidebar">
+    <h2>📊 AIMS</h2>
+    <a href="/">🏠 Trang chủ</a>
+    <a href="/assets">📋 Danh sách tài sản</a>
+    <a href="/scan">📷 Quét QR</a>
+</div>
 
-    <h1>📊 AIMS - Asset Management System</h1>
+<!-- Content -->
+<div class="content">
+    <h1>AIMS - Asset Management System</h1>
     <p class="subtitle">Hệ thống quản lý tài sản thông minh tích hợp QR Code</p>
 
     <div class="status">
         🟢 Hệ thống đang hoạt động ổn định
     </div>
 
-    <div class="btn-group">
-        <a href="/assets" class="btn">📋 Xem danh sách tài sản</a>
-        <a href="/asset/A2-01-0101-TB-01" class="btn secondary">
-            🔍 Demo quét QR tài sản
+    <div>
+        <a href="/assets" class="btn primary">
+            📋 Xem danh sách tài sản
+        </a>
+
+        <a href="/scan" class="btn secondary">
+            📷 Quét QR tài sản
         </a>
     </div>
-
-    <div class="features">
-        <h3>Chức năng hệ thống</h3>
-        <ul>
-            <li>✔ Quản lý thông tin tài sản theo tòa, tầng, phòng</li>
-            <li>✔ Quét QR để truy xuất nhanh thông tin</li>
-            <li>✔ Báo cáo tình trạng hư hỏng trực tiếp</li>
-            <li>✔ Lưu trữ báo cáo vào hệ thống</li>
-            <li>✔ Sẵn sàng mở rộng tích hợp AI đánh giá tài sản</li>
-        </ul>
-    </div>
-
-    <div class="footer">
-    </div>
-
 </div>
 
 </body>

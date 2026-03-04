@@ -5,158 +5,95 @@
 <title>Quét QR tài sản</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8"></script>
 
 <style>
 body {
     margin: 0;
     background: black;
     font-family: Arial, sans-serif;
-    overflow: hidden;
 }
 
 #reader {
     width: 100%;
     height: 100vh;
 }
-
-.overlay {
+.status {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 260px;
-    height: 260px;
-    transform: translate(-50%, -50%);
-    border: 4px solid #00ff88;
-    border-radius: 20px;
-    box-shadow: 0 0 25px #00ff88;
-    pointer-events: none;
-}
-
-.scan-line {
-    position: absolute;
-    left: 50%;
-    width: 260px;
-    height: 3px;
-    background: #00ff88;
-    transform: translateX(-50%);
-    animation: scan 2s linear infinite;
-}
-
-@keyframes scan {
-    0% { top: calc(50% - 130px); }
-    50% { top: calc(50% + 130px); }
-    100% { top: calc(50% - 130px); }
-}
-
-.back-btn {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    padding: 10px 15px;
-    background: rgba(0,0,0,0.6);
-    color: white;
-    border-radius: 8px;
-    text-decoration: none;
-    font-size: 14px;
-}
-
-.status-box {
-    position: absolute;
-    bottom: 40px;
+    bottom: 30px;
     left: 50%;
     transform: translateX(-50%);
     color: white;
-    font-size: 14px;
+    font-size: 16px;
 }
 </style>
 </head>
 
 <body>
 
-<a href="/" class="back-btn">← Quay lại</a>
-
 <div id="reader"></div>
-<div class="overlay"></div>
-<div class="scan-line"></div>
-<div class="status-box" id="status">Đang khởi động camera...</div>
+<div class="status" id="status">Đang khởi động camera...</div>
 
 <script>
 
 const html5QrCode = new Html5Qrcode("reader");
-let isScanning = false;
+let scanned = false;
 
-function cleanID(decodedText) {
-
-    let id = decodedText.trim();
-
-    // Nếu QR chứa full link
+function cleanID(text) {
+    let id = text.trim();
     if (id.includes("/asset/")) {
         id = id.split("/asset/")[1];
     }
-
-    // Xoá xuống dòng
-    id = id.replace(/\r?\n|\r/g, "");
-
-    return id;
+    return id.replace(/\r?\n|\r/g, "");
 }
 
 function onScanSuccess(decodedText) {
 
-    if (isScanning) return;
-    isScanning = true;
+    if (scanned) return;
+    scanned = true;
 
     let id = cleanID(decodedText);
 
-    document.getElementById("status").innerText = "Đang truy xuất: " + id;
+    document.getElementById("status").innerText = "Đã nhận: " + id;
 
     html5QrCode.stop().then(() => {
-
-        // Encode để tránh lỗi ký tự đặc biệt
         window.location.href = "/asset/" + encodeURIComponent(id);
-
-    }).catch(err => {
-        alert("Lỗi dừng camera");
-        console.log(err);
     });
 }
 
 function onScanFailure(error) {
-    // Không log để tránh spam
+    // bỏ qua
 }
 
 function startScanner() {
 
     Html5Qrcode.getCameras().then(devices => {
 
-        if (!devices || devices.length === 0) {
-            alert("Không tìm thấy camera.");
+        if (!devices.length) {
+            alert("Không tìm thấy camera");
             return;
         }
 
-        // Ưu tiên camera sau
-        let backCamera = devices.find(device =>
-            device.label.toLowerCase().includes("back") ||
-            device.label.toLowerCase().includes("rear")
-        );
+        let cameraId = devices[devices.length - 1].id; // luôn lấy cam cuối (thường là cam sau)
 
-        let cameraId = backCamera ? backCamera.id : devices[0].id;
-
-        document.getElementById("status").innerText = "Đang quét QR...";
+        document.getElementById("status").innerText = "Đang quét...";
 
         html5QrCode.start(
             cameraId,
             {
-                fps: 10,
-                qrbox: { width: 250, height: 250 },
-                aspectRatio: 1.0
+                fps: 20,   // tăng fps
+                qrbox: 300, // khung lớn hơn
+                aspectRatio: 1.0,
+                experimentalFeatures: {
+                    useBarCodeDetectorIfSupported: true
+                }
             },
             onScanSuccess,
             onScanFailure
         );
 
     }).catch(err => {
-        alert("Không mở được camera.\n\nKiểm tra:\n- Đã cấp quyền camera\n- Trang phải chạy HTTPS nếu deploy");
+        alert("Không mở được camera.\nCần HTTPS khi deploy.");
         console.log(err);
     });
 }

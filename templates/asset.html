@@ -116,7 +116,7 @@
         </div>
 
         <div class="info-row">
-            <span class="label">Khu vực</span>
+            <span class="label">Tòa</span>
             <span class="value">{{ asset["Auditorium"] }}</span>
         </div>
 
@@ -149,7 +149,20 @@
             <span class="label">Ghi chú</span>
             <span class="value">{{ asset["Notes"] or "—" }}</span>
         </div>
-
+        <form action="/report/{{ asset['ID_assets'] }}" method="get" style="margin-top:20px;">
+    <button type="submit" style="
+        width:100%;
+        padding:12px;
+        border:none;
+        border-radius:10px;
+        background:#ef4444;
+        color:white;
+        font-weight:600;
+        cursor:pointer;
+    ">
+        🚨 Báo cáo hư hỏng
+    </button>
+</form>
         <a href="/" class="back-link">← Quay lại</a>
 
     </div>

@@ -23,10 +23,12 @@ assets_data = load_data()
 @app.route("/")
 def home():
     return render_template("index.html")
-
+@app.route("/scan")
+def scan_qr():
+    return render_template("scan.html")
 
 # =========================
-# Trang danh sách tất cả tài sản  <-- BẠN ĐANG THIẾU CÁI NÀY
+# Trang danh sách tất cả tài sản  
 # =========================
 @app.route("/assets")
 def show_assets():
@@ -74,3 +76,4 @@ def report_damage(asset_id):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+

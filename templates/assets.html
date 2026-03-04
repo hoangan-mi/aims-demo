@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Danh sách tài sản</title>
+    <style>
+        body{
+            font-family:Segoe UI;
+            background:#f1f5f9;
+            margin:0;
+            padding:40px;
+        }
+        .card{
+            background:white;
+            padding:30px;
+            border-radius:15px;
+            box-shadow:0 8px 25px rgba(0,0,0,0.08);
+        }
+        table{
+            width:100%;
+            border-collapse:collapse;
+        }
+        th,td{
+            padding:10px;
+            border-bottom:1px solid #e2e8f0;
+            text-align:left;
+        }
+        th{
+            background:#f8fafc;
+        }
+        a{
+            text-decoration:none;
+            color:#2563eb;
+            font-weight:600;
+        }
+        .back{
+            margin-top:20px;
+            display:inline-block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>📋 Danh sách tài sản</h2>
+
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Tòa</th>
+            <th>Tầng</th>
+            <th>Phòng</th>
+            <th>Loại</th>
+            <th>Xem</th>
+        </tr>
+
+        {% for id, asset in assets.items() %}
+        <tr>
+            <td>{{ asset["ID_assets"] }}</td>
+            <td>{{ asset["Auditorium"] }}</td>
+            <td>{{ asset["Floor"] }}</td>
+            <td>{{ asset["Room"] }}</td>
+            <td>{{ asset["Type_asset"] }}</td>
+            <td>
+                <a href="/asset/{{ asset['ID_assets'] }}">Chi tiết</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <a href="/" class="back">← Quay lại trang chủ</a>
+</div>
+
+</body>
+</html>

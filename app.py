@@ -29,12 +29,7 @@ def home():
 @app.route("/asset/<asset_id>")
 def asset_detail(asset_id):
     asset = assets_data.get(asset_id)
-
-    if not asset:
-        return render_template("not_found.html"), 404
-
     return render_template("asset.html", asset=asset)
-
 
 # =========================
 # Trang báo cáo hư hỏng
@@ -69,3 +64,4 @@ def report_damage(asset_id):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+

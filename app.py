@@ -1,5 +1,6 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 import csv
+import os
 
 app = Flask(__name__)
 
@@ -14,12 +15,17 @@ def load_data():
 
 assets_data = load_data()
 
+# =========================
 # Trang chủ
+# =========================
 @app.route("/")
 def home():
     return render_template("index.html")
 
-# Trang hiển thị tài sản khi quét QR
+
+# =========================
+# Trang chi tiết tài sản
+# =========================
 @app.route("/asset/<asset_id>")
 def asset_detail(asset_id):
     asset = assets_data.get(asset_id)
@@ -30,9 +36,36 @@ def asset_detail(asset_id):
     return render_template("asset.html", asset=asset)
 
 
-import os
+# =========================
+# Trang báo cáo hư hỏng
+# =========================
+@app.route("/report/<asset_id>", methods=["GET", "POST"])
+def report_damage(asset_id):
+    asset = assets_data.get(asset_id)
+
+    if not asset:
+        return render_template("not_found.html"), 404
+
+    if request.method == "POST":
+        description = request.form.get("description")
+
+        # Lưu báo cáo vào file CSV riêng
+        with open("damage_reports.csv", "a", newline="", encoding="utf-8") as file:
+            writer = csv.writer(file)
+            writer.writerow([
+                asset["ID_assets"],
+                asset["Type_asset"],
+                asset["Auditorium"],
+                asset["Floor"],
+                asset["Room"],
+                description
+            ])
+
+        return render_template("report_success.html", asset=asset)
+
+    return render_template("report_form.html", asset=asset)
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-

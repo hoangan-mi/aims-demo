@@ -38,13 +38,14 @@ def asset_detail(asset_id):
 def report_damage(asset_id):
     asset = assets_data.get(asset_id)
 
+    # Nếu không tìm thấy tài sản
     if not asset:
-        return render_template("not_found.html"), 404
+        return render_template("asset.html", asset=None)
 
     if request.method == "POST":
         description = request.form.get("description")
 
-        # Lưu báo cáo vào file CSV riêng
+        # Lưu vào file CSV
         with open("damage_reports.csv", "a", newline="", encoding="utf-8") as file:
             writer = csv.writer(file)
             writer.writerow([
@@ -64,4 +65,5 @@ def report_damage(asset_id):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
 

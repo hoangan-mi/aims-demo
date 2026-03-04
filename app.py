@@ -4,7 +4,9 @@ import os
 
 app = Flask(__name__)
 
+# =========================
 # Load dữ liệu từ CSV
+# =========================
 def load_data():
     data = {}
     with open("aims.csv", newline="", encoding="utf-8-sig") as file:
@@ -24,12 +26,21 @@ def home():
 
 
 # =========================
+# Trang danh sách tất cả tài sản  <-- BẠN ĐANG THIẾU CÁI NÀY
+# =========================
+@app.route("/assets")
+def show_assets():
+    return render_template("assets.html", assets=assets_data)
+
+
+# =========================
 # Trang chi tiết tài sản
 # =========================
 @app.route("/asset/<asset_id>")
 def asset_detail(asset_id):
     asset = assets_data.get(asset_id)
     return render_template("asset.html", asset=asset)
+
 
 # =========================
 # Trang báo cáo hư hỏng
@@ -38,14 +49,12 @@ def asset_detail(asset_id):
 def report_damage(asset_id):
     asset = assets_data.get(asset_id)
 
-    # Nếu không tìm thấy tài sản
     if not asset:
         return render_template("asset.html", asset=None)
 
     if request.method == "POST":
         description = request.form.get("description")
 
-        # Lưu vào file CSV
         with open("damage_reports.csv", "a", newline="", encoding="utf-8") as file:
             writer = csv.writer(file)
             writer.writerow([
@@ -65,5 +74,3 @@ def report_damage(asset_id):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
-

@@ -68,7 +68,7 @@ def login():
             session["username"] = username
             session["role"] = user["role"]
 
-            return render_template("index.html")
+            return redirect(url_for("home"))
 
     return render_template("login.html")
 
@@ -94,7 +94,6 @@ def home():
         return redirect("/login")
 
     return render_template("index.html", role=session["role"])
-
 
 # =========================
 # Trang scan QR
@@ -208,5 +207,6 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
 
     app.run(host="0.0.0.0", port=port, debug=True)
+
 
 

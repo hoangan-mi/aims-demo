@@ -5,6 +5,7 @@ import os
 app = Flask(__name__)
 app.secret_key = "123456"
 
+
 # =========================
 # Load tài khoản
 # =========================
@@ -17,10 +18,12 @@ def load_users():
         return users
 
     with open("users.csv", newline="", encoding="utf-8-sig") as f:
-        reader = csv.DictReader(file)
+        reader = csv.DictReader(f)
 
         for row in reader:
-            users[row["username"]] = row
+            username = row.get("username")
+            if username:
+                users[username] = row
 
     return users
 
@@ -36,12 +39,15 @@ def load_data():
         print("⚠ Không tìm thấy aims.csv")
         return data
 
-    with open("aims.csv", newline="", encoding="utf-8-sig") as file:
-        reader = csv.DictReader(f,delimiter=";")
+    with open("aims.csv", newline="", encoding="utf-8-sig") as f:
+        reader = csv.DictReader(f, delimiter=";")
 
         for row in reader:
-            asset_id = row["ID_assets"].strip()
-            data[asset_id] = row
+            asset_id = row.get("ID_assets")
+
+            if asset_id:
+                asset_id = asset_id.strip()
+                data[asset_id] = row
 
     print(f"✔ Đã load {len(data)} tài sản")
 
@@ -51,24 +57,26 @@ def load_data():
 # =========================
 # LOGIN
 # =========================
-@app.route("/login", methods=["GET","POST"])
+@app.route("/login", methods=["GET", "POST"])
 def login():
 
     if request.method == "POST":
 
-        username = request.form["username"]
-        password = request.form["password"]
+        username = request.form.get("username")
+        password = request.form.get("password")
 
         users = load_users()
 
         user = users.get(username)
 
-        if user and user["password"] == password:
+        if user and user.get("password") == password:
 
             session["username"] = username
-            session["role"] = user["role"]
+            session["role"] = user.get("role", "user")
 
             return redirect(url_for("home"))
+
+        return render_template("login.html", error="Sai tài khoản hoặc mật khẩu")
 
     return render_template("login.html")
 
@@ -93,7 +101,8 @@ def home():
     if "username" not in session:
         return redirect("/login")
 
-    return render_template("index.html", role=session["role"])
+    return render_template("index.html", role=session.get("role"))
+
 
 # =========================
 # Trang scan QR
@@ -116,8 +125,7 @@ def show_assets():
     if "username" not in session:
         return redirect("/login")
 
-    # User phổ thông không được xem
-    if session["role"] == "user":
+    if session.get("role") == "user":
         return """
         <h2 style='text-align:center;margin-top:50px;color:red'>
         ❌ Bạn không có quyền xem danh sách tài sản
@@ -162,7 +170,7 @@ def asset_detail(asset_id):
 # =========================
 # Trang báo cáo hư hỏng
 # =========================
-@app.route("/report/<asset_id>", methods=["GET","POST"])
+@app.route("/report/<asset_id>", methods=["GET", "POST"])
 def report_damage(asset_id):
 
     if "username" not in session:
@@ -179,18 +187,30 @@ def report_damage(asset_id):
 
     if request.method == "POST":
 
-        description = request.form.get("description","").strip()
+        description = request.form.get("description", "").strip()
 
-        with open("damage_reports.csv","a",newline="",encoding="utf-8") as file:
+        file_exists = os.path.exists("damage_reports.csv")
 
-            writer = csv.writer(file)
+        with open("damage_reports.csv", "a", newline="", encoding="utf-8") as f:
+
+            writer = csv.writer(f)
+
+            if not file_exists:
+                writer.writerow([
+                    "ID_assets",
+                    "Type_asset",
+                    "Auditorium",
+                    "Floor",
+                    "Room",
+                    "Description"
+                ])
 
             writer.writerow([
-                asset["ID_assets"],
-                asset.get("Type_asset",""),
-                asset.get("Auditorium",""),
-                asset.get("Floor",""),
-                asset.get("Room",""),
+                asset.get("ID_assets", ""),
+                asset.get("Type_asset", ""),
+                asset.get("Auditorium", ""),
+                asset.get("Floor", ""),
+                asset.get("Room", ""),
                 description
             ])
 
@@ -207,10 +227,3 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
 
     app.run(host="0.0.0.0", port=port, debug=True)
-
-
-
-
-
-
-

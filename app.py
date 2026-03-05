@@ -16,7 +16,7 @@ def load_users():
         print("⚠ Không tìm thấy users.csv")
         return users
 
-    with open("users.csv", newline="", encoding="utf-8") as file:
+    with open("users.csv", newline="", encoding="utf-8-sig") as f:
         reader = csv.DictReader(file)
 
         for row in reader:
@@ -207,6 +207,7 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
 
     app.run(host="0.0.0.0", port=port, debug=True)
+
 
 
 

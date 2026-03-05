@@ -6,97 +6,103 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-body {
-    margin: 0;
-    font-family: "Segoe UI", Arial, sans-serif;
-    background: #f1f5f9;
+
+body{
+    margin:0;
+    font-family:"Segoe UI",Arial;
+    background:#f1f5f9;
 }
 
-/* ===== SIDEBAR ===== */
-.sidebar {
-    width: 250px;
-    height: 100vh;
-    background: linear-gradient(180deg, #0f172a, #1e293b);
-    color: white;
-    position: fixed;
-    left: 0;
-    top: 0;
-    padding-top: 30px;
+/* SIDEBAR */
+.sidebar{
+    width:250px;
+    height:100vh;
+    background:linear-gradient(180deg,#0f172a,#1e293b);
+    color:white;
+    position:fixed;
+    left:0;
+    top:0;
+    padding-top:30px;
 }
 
-.sidebar h2 {
-    text-align: center;
-    margin-bottom: 40px;
-    font-weight: 600;
+.sidebar h2{
+    text-align:center;
+    margin-bottom:40px;
 }
 
-.sidebar a {
-    display: block;
-    padding: 15px 25px;
-    color: #cbd5e1;
-    text-decoration: none;
-    transition: 0.3s;
+.sidebar a{
+    display:block;
+    padding:15px 25px;
+    color:#cbd5e1;
+    text-decoration:none;
 }
 
-.sidebar a:hover {
-    background: #334155;
-    color: white;
+.sidebar a:hover{
+    background:#334155;
+    color:white;
 }
 
-/* ===== CONTENT ===== */
-.content {
-    margin-left: 250px;
-    padding: 60px;
+/* CONTENT */
+
+.content{
+    margin-left:250px;
+    padding:60px;
 }
 
-h1 {
-    color: #0f172a;
-    margin-bottom: 10px;
+h1{
+    color:#0f172a;
 }
 
-.subtitle {
-    color: #64748b;
-    margin-bottom: 30px;
+.subtitle{
+    color:#64748b;
+    margin-bottom:25px;
 }
 
-.status {
-    background: #dcfce7;
-    color: #166534;
-    padding: 14px 20px;
-    border-radius: 12px;
-    display: inline-block;
-    font-weight: 600;
-    margin-bottom: 40px;
+.status{
+    background:#dcfce7;
+    color:#166534;
+    padding:14px 20px;
+    border-radius:12px;
+    display:inline-block;
+    font-weight:600;
+    margin-bottom:35px;
 }
 
-/* ===== BUTTON ===== */
-.btn {
-    display: inline-block;
-    padding: 14px 24px;
-    border-radius: 10px;
-    text-decoration: none;
-    font-weight: 600;
-    margin-right: 15px;
-    transition: 0.3s;
+/* BUTTON */
+
+.btn{
+    display:inline-block;
+    padding:14px 24px;
+    border-radius:10px;
+    text-decoration:none;
+    font-weight:600;
+    margin-right:15px;
 }
 
-.btn.primary {
-    background: #2563eb;
-    color: white;
+.primary{
+    background:#2563eb;
+    color:white;
 }
 
-.btn.primary:hover {
-    background: #1d4ed8;
+.primary:hover{
+    background:#1d4ed8;
 }
 
-.btn.secondary {
-    background: #0ea5e9;
-    color: white;
+.secondary{
+    background:#0ea5e9;
+    color:white;
 }
 
-.btn.secondary:hover {
-    background: #0284c7;
+.secondary:hover{
+    background:#0284c7;
 }
+
+.logout{
+    position:absolute;
+    bottom:30px;
+    width:100%;
+}
+
 </style>
 </head>
 
@@ -104,30 +110,47 @@ h1 {
 
 <!-- Sidebar -->
 <div class="sidebar">
-    <h2>📊 AIMS</h2>
-    <a href="/">🏠 Trang chủ</a>
-    <a href="/assets">📋 Danh sách tài sản</a>
-    <a href="/scan">📷 Quét QR</a>
+
+<h2>📊 AIMS</h2>
+
+<a href="/">🏠 Trang chủ</a>
+<a href="/assets">📋 Danh sách tài sản</a>
+<a href="/scan">📷 Quét QR</a>
+
+<div class="logout">
+<a href="/logout">🚪 Đăng xuất</a>
 </div>
+
+</div>
+
 
 <!-- Content -->
 <div class="content">
-    <h1>AIMS - Asset Management System</h1>
-    <p class="subtitle">Hệ thống quản lý tài sản thông minh tích hợp QR Code</p>
 
-    <div class="status">
-        🟢 Hệ thống đang hoạt động ổn định
-    </div>
+<h1>AIMS - Asset Management System</h1>
 
-    <div>
-        <a href="/assets" class="btn primary">
-            📋 Xem danh sách tài sản
-        </a>
+<p class="subtitle">
+Hệ thống quản lý tài sản thông minh tích hợp QR Code
+</p>
 
-        <a href="/scan" class="btn secondary">
-            📷 Quét QR tài sản
-        </a>
-    </div>
+<div class="status">
+🟢 Hệ thống đang hoạt động ổn định
+</div>
+
+<p>
+Xin chào: <b>{{ session.username }}</b>
+</p>
+
+<br>
+
+<a href="/assets" class="btn primary">
+📋 Xem danh sách tài sản
+</a>
+
+<a href="/scan" class="btn secondary">
+📷 Quét QR tài sản
+</a>
+
 </div>
 
 </body>

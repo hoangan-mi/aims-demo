@@ -40,7 +40,7 @@ def load_data():
         return data
 
     with open("aims.csv", newline="", encoding="utf-8-sig") as f:
-        reader = csv.DictReader(f, delimiter=";")
+        reader = csv.DictReader(f, delimiter=",")
 
         for row in reader:
             asset_id = row.get("ID_assets")
@@ -248,4 +248,5 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
 
     app.run(host="0.0.0.0", port=port, debug=True)
+
 

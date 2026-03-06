@@ -166,7 +166,28 @@ def asset_detail(asset_id):
 
     return render_template("asset.html", asset=asset)
 
+# =========================
+# API lấy thông tin tài sản (dùng cho scan QR realtime)
+# =========================
+@app.route("/api/asset/<asset_id>")
+def api_asset(asset_id):
 
+    if "username" not in session:
+        return {"status": "error", "message": "not login"}
+
+    assets_data = load_data()
+
+    asset_id = asset_id.strip()
+
+    asset = assets_data.get(asset_id)
+
+    if not asset:
+        return {"status": "error", "message": "not found"}
+
+    return {
+        "status": "ok",
+        "data": asset
+    }
 # =========================
 # Trang báo cáo hư hỏng
 # =========================
@@ -227,3 +248,4 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
 
     app.run(host="0.0.0.0", port=port, debug=True)
+

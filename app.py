@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 import csv
 import os
-
+from flask import jsonify
 app = Flask(__name__)
 app.secret_key = "123456"
 
@@ -173,7 +173,7 @@ def asset_detail(asset_id):
 def api_asset(asset_id):
 
     if "username" not in session:
-        return {"status": "error", "message": "not login"}
+        return jsonify({"status": "error", "message": "not login"})
 
     assets_data = load_data()
 
@@ -182,12 +182,12 @@ def api_asset(asset_id):
     asset = assets_data.get(asset_id)
 
     if not asset:
-        return {"status": "error", "message": "not found"}
+        return jsonify({"status": "error", "message": "not found"})
 
-    return {
+    return jsonify({
         "status": "ok",
         "data": asset
-    }
+    })
 # =========================
 # Trang báo cáo hư hỏng
 # =========================
@@ -248,5 +248,6 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
 
     app.run(host="0.0.0.0", port=port, debug=True)
+
 
 

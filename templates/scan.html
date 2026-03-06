@@ -2,241 +2,101 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
+<title>Quét QR tài sản</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Asset Scan Result</title>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8"></script>
 
 <style>
-
 body{
-margin:0;
-font-family:Segoe UI;
-background:#f3f4f6;
-display:flex;
-justify-content:center;
-}
-
-.app{
-width:420px;
-background:white;
-min-height:100vh;
-padding:10px 15px 30px 15px;
-}
-
-.header{
-display:flex;
-align-items:center;
-gap:10px;
-font-weight:600;
-margin-bottom:10px;
-}
-
-.header span{
-font-size:18px;
+    margin:0;
+    background:black;
+    font-family:Arial;
 }
 
 #reader{
-width:100%;
-height:220px;
-border-radius:14px;
-overflow:hidden;
-margin-bottom:10px;
+    width:100%;
+    height:100vh;
 }
 
-/* Scan success */
-
-.success{
-background:#e8f7ef;
-color:#0f9d58;
-padding:10px;
-border-radius:10px;
-font-weight:600;
-display:none;
-margin-bottom:10px;
+.topbar{
+    position:absolute;
+    top:20px;
+    left:50%;
+    transform:translateX(-50%);
 }
 
-/* Card */
-
-.card{
-background:white;
-border-radius:14px;
-padding:15px;
-box-shadow:0 6px 20px rgba(0,0,0,0.08);
-display:none;
+button{
+    padding:10px 20px;
+    border:none;
+    border-radius:8px;
+    font-size:14px;
+    cursor:pointer;
 }
 
-.asset-title{
-font-size:18px;
-font-weight:700;
-margin-bottom:10px;
+.status{
+    position:absolute;
+    bottom:30px;
+    left:50%;
+    transform:translateX(-50%);
+    color:white;
 }
-
-.asset-id{
-color:#666;
-font-size:13px;
-margin-bottom:10px;
-}
-
-.grid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:10px;
-font-size:14px;
-margin-bottom:15px;
-}
-
-.buttons{
-display:flex;
-gap:10px;
-}
-
-.btn{
-flex:1;
-padding:10px;
-border:none;
-border-radius:8px;
-color:white;
-font-weight:600;
-cursor:pointer;
-}
-
-.btn-red{
-background:#ef4444;
-}
-
-.btn-green{
-background:#22c55e;
-}
-
-.footer{
-text-align:center;
-font-size:12px;
-color:#777;
-margin-top:10px;
-}
-
 </style>
 </head>
 
 <body>
 
-<div class="app">
-
-<div class="header">
-← <span>Asset Scan Result</span>
-</div>
-
 <div id="reader"></div>
 
-<div class="success" id="success">
-✔ Scan Successful
+<div class="topbar">
+<input type="file" id="imageUpload" accept="image/*">
 </div>
 
-<div class="card" id="assetCard">
-
-<div class="asset-title" id="assetName"></div>
-
-<div class="asset-id" id="assetID"></div>
-
-<div class="grid">
-
-<div>
-<b>Tòa</b><br>
-<span id="assetAud"></span>
-</div>
-
-<div>
-<b>Tầng</b><br>
-<span id="assetFloor"></span>
-</div>
-
-<div>
-<b>Phòng</b><br>
-<span id="assetRoom"></span>
-</div>
-
-<div>
-<b>Loại</b><br>
-<span id="assetType"></span>
-</div>
-
-</div>
-
-<div class="buttons">
-
-<button class="btn btn-red" id="reportBtn">
-⚠ Báo hỏng
-</button>
-
-<button class="btn btn-green">
-📍 Cập nhật vị trí
-</button>
-
-</div>
-
-</div>
-
-<div class="footer">
-Scan another QR code to continue.
-</div>
-
-</div>
+<div class="status" id="status">Đang mở camera...</div>
 
 <script>
 
-const html5QrCode = new Html5Qrcode("reader")
-let scanned=false
+const html5QrCode = new Html5Qrcode("reader");
+let scanned=false;
 
 function cleanID(text){
+    let id=text.trim();
 
-let id=text.trim()
+    if(id.includes("/asset/")){
+        id=id.split("/asset/")[1];
+    }
 
-if(id.includes("/asset/")){
-id=id.split("/asset/")[1]
+    return id.replace(/\r?\n|\r/g,"");
 }
 
-return id.replace(/\r?\n|\r/g,"")
+function goToAsset(id){
+
+    document.getElementById("status").innerText="Đang mở tài sản "+id;
+
+    window.location.href="/asset/"+encodeURIComponent(id);
 
 }
 
 function onScanSuccess(decodedText){
 
-if(scanned) return
-scanned=true
+    if(scanned) return;
 
-let id=cleanID(decodedText)
+    scanned=true;
 
-fetch("/api/asset/"+encodeURIComponent(id))
-.then(res=>res.json())
-.then(data=>{
+    let id=cleanID(decodedText);
 
-if(data.status==="ok"){
+    html5QrCode.stop().then(()=>{
 
-let a=data.data
+        goToAsset(id)
 
-document.getElementById("success").style.display="block"
-document.getElementById("assetCard").style.display="block"
-
-document.getElementById("assetName").innerText=a.Type_asset
-document.getElementById("assetID").innerText=a.ID_assets
-document.getElementById("assetAud").innerText=a.Auditorium
-document.getElementById("assetFloor").innerText=a.Floor
-document.getElementById("assetRoom").innerText=a.Room
-document.getElementById("assetType").innerText=a.Type_asset
-
-document.getElementById("reportBtn").onclick=function(){
-window.location="/report/"+a.ID_assets
-}
-
-}
-
-})
+    });
 
 }
 
 function onScanFailure(error){}
 
+
+// mở camera
 function startScanner(){
 
 Html5Qrcode.getCameras().then(devices=>{
@@ -246,8 +106,8 @@ let cameraId=devices[devices.length-1].id
 html5QrCode.start(
 cameraId,
 {
-fps:15,
-qrbox:200
+fps:20,
+qrbox:280
 },
 onScanSuccess,
 onScanFailure
@@ -258,6 +118,31 @@ onScanFailure
 }
 
 window.onload=startScanner
+
+
+
+// quét QR từ ảnh
+document.getElementById("imageUpload").addEventListener("change",function(){
+
+const file=this.files[0]
+
+if(!file) return
+
+html5QrCode.scanFile(file,true)
+.then(decodedText=>{
+
+let id=cleanID(decodedText)
+
+goToAsset(id)
+
+})
+.catch(err=>{
+
+alert("Không tìm thấy QR trong ảnh")
+
+})
+
+})
 
 </script>
 

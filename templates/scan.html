@@ -183,7 +183,10 @@ Scan another QR code to continue.
 <script>
 
 const html5QrCode = new Html5Qrcode("reader")
-let cameraId=null
+
+let scanning = true
+let lastScanned = ""
+let cameraId = null
 
 function goBack(){
 window.history.back()
@@ -203,11 +206,16 @@ return id.replace(/\r?\n|\r/g,"")
 
 function onScanSuccess(decodedText){
 
+if(!scanning) return
+
 let id=cleanID(decodedText)
 
-/* tạm dừng scanner */
+/* tránh scan trùng */
 
-html5QrCode.stop().then(()=>{
+if(id === lastScanned) return
+
+lastScanned = id
+scanning = false
 
 fetch("/api/asset/"+encodeURIComponent(id))
 .then(res=>res.json())
@@ -235,13 +243,12 @@ navigator.vibrate(200)
 
 }
 
-/* restart scanner để scan tiếp */
+/* cho phép scan tiếp */
 
 setTimeout(()=>{
-startScanner()
-},500)
-
-})
+scanning=true
+lastScanned=""
+},1500)
 
 })
 
@@ -254,12 +261,8 @@ function startScanner(){
 html5QrCode.start(
 cameraId,
 {
-fps:30,
-qrbox:{width:250,height:250},
-aspectRatio:1.0,
-videoConstraints:{
-facingMode:"environment"
-}
+fps:20,
+qrbox:{width:250,height:250}
 },
 onScanSuccess,
 onScanFailure

@@ -2,8 +2,8 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Asset Scan</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Asset Scan Result</title>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8"></script>
 
@@ -11,63 +11,109 @@
 
 body{
 margin:0;
-font-family:Arial;
-background:#f4f4f4;
+font-family:Segoe UI;
+background:#f3f4f6;
+display:flex;
+justify-content:center;
+}
+
+.app{
+width:420px;
+background:white;
+min-height:100vh;
+padding:10px 15px 30px 15px;
+}
+
+.header{
+display:flex;
+align-items:center;
+gap:10px;
+font-weight:600;
+margin-bottom:10px;
+}
+
+.header span{
+font-size:18px;
 }
 
 #reader{
 width:100%;
-height:260px;
-}
-
-.container{
-padding:15px;
-}
-
-.card{
-background:white;
-padding:20px;
-border-radius:15px;
-box-shadow:0 5px 20px rgba(0,0,0,0.1);
-margin-top:15px;
-}
-
-.success{
-background:#e8f5e9;
-color:#2e7d32;
-padding:12px;
-border-radius:10px;
-margin-bottom:15px;
-font-weight:600;
-}
-
-.row{
-display:flex;
-justify-content:space-between;
+height:220px;
+border-radius:14px;
+overflow:hidden;
 margin-bottom:10px;
 }
 
-.btn{
-padding:12px;
-border:none;
+/* Scan success */
+
+.success{
+background:#e8f7ef;
+color:#0f9d58;
+padding:10px;
 border-radius:10px;
+font-weight:600;
+display:none;
+margin-bottom:10px;
+}
+
+/* Card */
+
+.card{
+background:white;
+border-radius:14px;
+padding:15px;
+box-shadow:0 6px 20px rgba(0,0,0,0.08);
+display:none;
+}
+
+.asset-title{
+font-size:18px;
+font-weight:700;
+margin-bottom:10px;
+}
+
+.asset-id{
+color:#666;
+font-size:13px;
+margin-bottom:10px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+font-size:14px;
+margin-bottom:15px;
+}
+
+.buttons{
+display:flex;
+gap:10px;
+}
+
+.btn{
+flex:1;
+padding:10px;
+border:none;
+border-radius:8px;
 color:white;
 font-weight:600;
 cursor:pointer;
-width:48%;
 }
 
-.red{
+.btn-red{
 background:#ef4444;
 }
 
-.green{
+.btn-green{
 background:#22c55e;
 }
 
-.upload{
-margin-top:10px;
+.footer{
 text-align:center;
+font-size:12px;
+color:#777;
+margin-top:10px;
 }
 
 </style>
@@ -75,56 +121,55 @@ text-align:center;
 
 <body>
 
-<div id="reader"></div>
+<div class="app">
 
-<div class="upload">
-<input type="file" id="fileInput" accept="image/*">
+<div class="header">
+← <span>Asset Scan Result</span>
 </div>
 
-<div class="container">
+<div id="reader"></div>
 
-<div id="result" style="display:none">
-
-<div class="card">
-
-<div class="success">
+<div class="success" id="success">
 ✔ Scan Successful
 </div>
 
-<h2 id="type"></h2>
-<p id="assetId"></p>
+<div class="card" id="assetCard">
 
-<div class="row">
+<div class="asset-title" id="assetName"></div>
+
+<div class="asset-id" id="assetID"></div>
+
+<div class="grid">
+
 <div>
 <b>Tòa</b><br>
-<span id="building"></span>
+<span id="assetAud"></span>
 </div>
 
 <div>
 <b>Tầng</b><br>
-<span id="floor"></span>
-</div>
+<span id="assetFloor"></span>
 </div>
 
-<div class="row">
 <div>
 <b>Phòng</b><br>
-<span id="room"></span>
+<span id="assetRoom"></span>
 </div>
 
 <div>
 <b>Loại</b><br>
-<span id="type2"></span>
-</div>
+<span id="assetType"></span>
 </div>
 
-<div class="row" style="margin-top:15px">
+</div>
 
-<button class="btn red">
+<div class="buttons">
+
+<button class="btn btn-red" id="reportBtn">
 ⚠ Báo hỏng
 </button>
 
-<button class="btn green">
+<button class="btn btn-green">
 📍 Cập nhật vị trí
 </button>
 
@@ -132,93 +177,87 @@ text-align:center;
 
 </div>
 
+<div class="footer">
+Scan another QR code to continue.
 </div>
 
 </div>
 
 <script>
 
-const qr = new Html5Qrcode("reader");
+const html5QrCode = new Html5Qrcode("reader")
+let scanned=false
 
 function cleanID(text){
 
-let id=text.trim();
+let id=text.trim()
 
 if(id.includes("/asset/")){
-id=id.split("/asset/")[1];
+id=id.split("/asset/")[1]
 }
 
-return id;
+return id.replace(/\r?\n|\r/g,"")
 
 }
 
-function loadAsset(id){
+function onScanSuccess(decodedText){
 
-fetch("/api/asset/"+id)
+if(scanned) return
+scanned=true
 
-.then(r=>r.json())
+let id=cleanID(decodedText)
 
+fetch("/api/asset/"+encodeURIComponent(id))
+.then(res=>res.json())
 .then(data=>{
 
-if(!data.success){
-alert("Không tìm thấy tài sản")
-return
+if(data.status==="ok"){
+
+let a=data.data
+
+document.getElementById("success").style.display="block"
+document.getElementById("assetCard").style.display="block"
+
+document.getElementById("assetName").innerText=a.Type_asset
+document.getElementById("assetID").innerText=a.ID_assets
+document.getElementById("assetAud").innerText=a.Auditorium
+document.getElementById("assetFloor").innerText=a.Floor
+document.getElementById("assetRoom").innerText=a.Room
+document.getElementById("assetType").innerText=a.Type_asset
+
+document.getElementById("reportBtn").onclick=function(){
+window.location="/report/"+a.ID_assets
 }
 
-let a=data.asset
-
-document.getElementById("result").style.display="block"
-
-document.getElementById("type").innerText=a.Type_asset
-document.getElementById("type2").innerText=a.Type_asset
-document.getElementById("assetId").innerText=a.ID_assets
-
-document.getElementById("building").innerText=a.Auditorium
-document.getElementById("floor").innerText=a.Floor
-document.getElementById("room").innerText=a.Room
+}
 
 })
 
 }
 
-function onScanSuccess(text){
+function onScanFailure(error){}
 
-let id=cleanID(text)
+function startScanner(){
 
-loadAsset(id)
+Html5Qrcode.getCameras().then(devices=>{
 
-}
+let cameraId=devices[devices.length-1].id
 
-qr.start(
-{ facingMode:"environment" },
+html5QrCode.start(
+cameraId,
 {
-fps:20,
-qrbox:250
+fps:15,
+qrbox:200
 },
-onScanSuccess
+onScanSuccess,
+onScanFailure
 )
 
-
-// scan ảnh
-document.getElementById("fileInput").addEventListener("change",function(){
-
-let file=this.files[0]
-
-qr.scanFile(file,true)
-
-.then(text=>{
-
-let id=cleanID(text)
-
-loadAsset(id)
-
 })
 
-.catch(()=>{
-alert("Không đọc được QR")
-})
+}
 
-})
+window.onload=startScanner
 
 </script>
 

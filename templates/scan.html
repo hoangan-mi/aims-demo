@@ -185,8 +185,7 @@ Scan another QR code to continue.
 
 const html5QrCode = new Html5Qrcode("reader")
 
-let lastScannedID = null
-let scanLock = false
+let scanning = true
 
 function goBack(){
 window.history.back()
@@ -206,16 +205,11 @@ return id.replace(/\r?\n|\r/g,"")
 
 function onScanSuccess(decodedText){
 
-if(scanLock) return
+if(!scanning) return
 
-let id = cleanID(decodedText)
+scanning=false
 
-/* tránh scan cùng QR liên tục */
-
-if(id === lastScannedID) return
-
-scanLock = true
-lastScannedID = id
+let id=cleanID(decodedText)
 
 fetch("/api/asset/"+encodeURIComponent(id))
 .then(res=>res.json())
@@ -243,11 +237,11 @@ navigator.vibrate(200)
 
 }
 
-/* mở lại scanner nhanh để scan QR khác */
+/* cho phép scan QR khác */
 
 setTimeout(()=>{
-scanLock=false
-},500)
+scanning=true
+},700)
 
 })
 
@@ -259,7 +253,7 @@ function startScanner(){
 
 Html5Qrcode.getCameras().then(devices=>{
 
-let cameraId = devices[devices.length-1].id
+let cameraId=devices[devices.length-1].id
 
 html5QrCode.start(
 cameraId,

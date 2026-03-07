@@ -1,11 +1,9 @@
-```html
 <!DOCTYPE html>
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>Asset Scan</title>
+<title>Asset Scan Result</title>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8"></script>
 
@@ -13,8 +11,8 @@
 
 body{
 margin:0;
-font-family:Arial;
-background:#f4f4f4;
+font-family:Segoe UI;
+background:#f3f4f6;
 display:flex;
 justify-content:center;
 }
@@ -23,73 +21,138 @@ justify-content:center;
 width:420px;
 background:white;
 min-height:100vh;
-padding:12px;
+padding:10px 15px 30px 15px;
 }
 
 .header{
 display:flex;
 align-items:center;
 gap:10px;
-font-size:20px;
 font-weight:600;
 margin-bottom:10px;
 }
 
+.header span{
+font-size:18px;
+cursor:pointer;
+}
+
+/* SCANNER */
+
 #reader{
 width:100%;
-height:260px;
-background:black;
+height:230px;
 border-radius:20px;
 overflow:hidden;
 position:relative;
+background:black;
+margin-bottom:10px;
+box-shadow:0 0 20px rgba(0,255,170,0.3);
 }
 
-/* CAMERA VIDEO */
-
-#reader video{
-width:100% !important;
-height:100% !important;
-object-fit:cover;
-}
-
-/* OVERLAY (không chặn scan) */
-
-.overlay{
-position:absolute;
-top:0;
-left:0;
-right:0;
-bottom:0;
-pointer-events:none;
-}
-
-/* SCAN CORNERS */
-
-.corner{
-position:absolute;
-width:50px;
-height:50px;
-border:5px solid white;
-}
-
-.tl{top:30px;left:30px;border-right:none;border-bottom:none;}
-.tr{top:30px;right:30px;border-left:none;border-bottom:none;}
-.bl{bottom:30px;left:30px;border-right:none;border-top:none;}
-.br{bottom:30px;right:30px;border-left:none;border-top:none;}
-
-/* SCAN LINE */
+/* scan line */
 
 .scan-line{
 position:absolute;
+left:0;
 width:100%;
 height:3px;
-background:linear-gradient(90deg,transparent,#00ff9c,transparent);
-animation:scan 1.5s linear infinite;
+background:linear-gradient(90deg,transparent,#00ffa6,transparent);
+animation:scanMove 1.8s linear infinite;
 }
 
-@keyframes scan{
-0%{top:30px;}
-100%{top:220px;}
+@keyframes scanMove{
+0%{top:20px;}
+100%{top:200px;}
+}
+
+/* scan corners */
+
+.corner{
+position:absolute;
+width:40px;
+height:40px;
+border:5px solid #fff;
+}
+
+.tl{top:20px;left:20px;border-right:none;border-bottom:none;}
+.tr{top:20px;right:20px;border-left:none;border-bottom:none;}
+.bl{bottom:20px;left:20px;border-right:none;border-top:none;}
+.br{bottom:20px;right:20px;border-left:none;border-top:none;}
+
+/* success */
+
+.success{
+background:#e8f7ef;
+color:#0f9d58;
+padding:10px;
+border-radius:10px;
+font-weight:600;
+display:none;
+margin-bottom:10px;
+}
+
+/* asset card */
+
+.card{
+background:white;
+border-radius:14px;
+padding:15px;
+box-shadow:0 6px 20px rgba(0,0,0,0.08);
+display:none;
+transform:translateY(30px);
+opacity:0;
+transition:all .35s ease;
+}
+
+.card.show{
+transform:translateY(0);
+opacity:1;
+}
+
+.asset-title{
+font-size:18px;
+font-weight:700;
+margin-bottom:10px;
+}
+
+.asset-id{
+color:#666;
+font-size:13px;
+margin-bottom:10px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+font-size:14px;
+margin-bottom:15px;
+}
+
+.buttons{
+display:flex;
+gap:10px;
+}
+
+.btn{
+flex:1;
+padding:10px;
+border:none;
+border-radius:8px;
+color:white;
+font-weight:600;
+cursor:pointer;
+}
+
+.btn-red{background:#ef4444;}
+.btn-green{background:#22c55e;}
+
+.footer{
+text-align:center;
+font-size:12px;
+color:#777;
+margin-top:10px;
 }
 
 </style>
@@ -100,13 +163,11 @@ animation:scan 1.5s linear infinite;
 <div class="app">
 
 <div class="header">
-<div onclick="history.back()">←</div>
-<div>Asset Scan</div>
+<span onclick="history.back()">←</span>
+<span>Asset Scan Result</span>
 </div>
 
 <div id="reader">
-
-<div class="overlay">
 
 <div class="scan-line"></div>
 
@@ -117,36 +178,138 @@ animation:scan 1.5s linear infinite;
 
 </div>
 
+<div class="success" id="success">
+✔ Scan Successful
+</div>
+
+<div class="card" id="assetCard">
+
+<div class="asset-title" id="assetName"></div>
+
+<div class="asset-id" id="assetID"></div>
+
+<div class="grid">
+
+<div>
+<b>Tòa</b><br>
+<span id="assetAud"></span>
+</div>
+
+<div>
+<b>Tầng</b><br>
+<span id="assetFloor"></span>
+</div>
+
+<div>
+<b>Phòng</b><br>
+<span id="assetRoom"></span>
+</div>
+
+<div>
+<b>Loại</b><br>
+<span id="assetType"></span>
+</div>
+
+</div>
+
+<div class="buttons">
+
+<button class="btn btn-red" id="reportBtn">
+⚠ Báo hỏng
+</button>
+
+<button class="btn btn-green">
+📍 Cập nhật vị trí
+</button>
+
+</div>
+
+</div>
+
+<div class="footer">
+Scan another QR code to continue.
 </div>
 
 </div>
 
 <script>
 
-const scanner = new Html5Qrcode("reader")
+const html5QrCode = new Html5Qrcode("reader")
+
+let lastScanned=null
+let lastTime=0
+
+function cleanID(text){
+
+let id=text.trim()
+
+if(id.includes("/asset/")){
+id=id.split("/asset/")[1]
+}
+
+return id.replace(/\r?\n|\r/g,"")
+
+}
 
 function onScanSuccess(decodedText){
-console.log("QR:", decodedText)
-alert(decodedText)
+
+let now=Date.now()
+let id=cleanID(decodedText)
+
+if(id===lastScanned && now-lastTime<2000) return
+
+lastScanned=id
+lastTime=now
+
+fetch("/api/asset/"+encodeURIComponent(id))
+.then(res=>res.json())
+.then(data=>{
+
+if(data.status==="ok"){
+
+let a=data.data
+
+document.getElementById("success").style.display="block"
+
+let card=document.getElementById("assetCard")
+card.style.display="block"
+
+setTimeout(()=>{
+card.classList.add("show")
+},50)
+
+document.getElementById("assetName").innerText=a.Type_asset
+document.getElementById("assetID").innerText=a.ID_assets
+document.getElementById("assetAud").innerText=a.Auditorium
+document.getElementById("assetFloor").innerText=a.Floor
+document.getElementById("assetRoom").innerText=a.Room
+document.getElementById("assetType").innerText=a.Type_asset
+
+document.getElementById("reportBtn").onclick=function(){
+window.location="/report/"+a.ID_assets
+}
+
+navigator.vibrate(200)
+
+}
+
+})
+
 }
 
 function startScanner(){
 
-Html5Qrcode.getCameras().then(cameras => {
+Html5Qrcode.getCameras().then(devices=>{
 
-if(!cameras.length){
-alert("No camera")
-return
-}
+let cameraId=devices[devices.length-1].id
 
-const cameraId = cameras[cameras.length-1].id
-
-scanner.start(
+html5QrCode.start(
 cameraId,
 {
-fps:10,
-qrbox:220,
-aspectRatio:1
+fps:12,
+qrbox:{width:250,height:250},
+aspectRatio:1.0,
+disableFlip:true
 },
 onScanSuccess
 )
@@ -155,10 +318,9 @@ onScanSuccess
 
 }
 
-window.onload = startScanner
+window.onload=startScanner
 
 </script>
 
 </body>
 </html>
-```

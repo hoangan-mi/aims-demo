@@ -45,8 +45,6 @@ overflow:hidden;
 margin-bottom:10px;
 }
 
-/* Scan success */
-
 .success{
 background:#e8f7ef;
 color:#0f9d58;
@@ -56,8 +54,6 @@ font-weight:600;
 display:none;
 margin-bottom:10px;
 }
-
-/* Card */
 
 .card{
 background:white;
@@ -188,7 +184,9 @@ Scan another QR code to continue.
 <script>
 
 const html5QrCode = new Html5Qrcode("reader")
-let scanned=false
+
+let lastScannedID = null
+let scanLock = false
 
 function goBack(){
 window.history.back()
@@ -208,10 +206,16 @@ return id.replace(/\r?\n|\r/g,"")
 
 function onScanSuccess(decodedText){
 
-if(scanned) return
-scanned=true
+if(scanLock) return
 
-let id=cleanID(decodedText)
+let id = cleanID(decodedText)
+
+/* tránh scan cùng QR liên tục */
+
+if(id === lastScannedID) return
+
+scanLock = true
+lastScannedID = id
 
 fetch("/api/asset/"+encodeURIComponent(id))
 .then(res=>res.json())
@@ -237,11 +241,13 @@ window.location="/report/"+a.ID_assets
 
 navigator.vibrate(200)
 
-setTimeout(()=>{
-scanned=false
-},2000)
-
 }
+
+/* mở lại scanner nhanh để scan QR khác */
+
+setTimeout(()=>{
+scanLock=false
+},500)
 
 })
 
@@ -253,7 +259,7 @@ function startScanner(){
 
 Html5Qrcode.getCameras().then(devices=>{
 
-let cameraId=devices[devices.length-1].id
+let cameraId = devices[devices.length-1].id
 
 html5QrCode.start(
 cameraId,

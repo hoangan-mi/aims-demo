@@ -34,6 +34,7 @@ margin-bottom:10px;
 
 .header span{
 font-size:18px;
+cursor:pointer;
 }
 
 #reader{
@@ -124,7 +125,8 @@ margin-top:10px;
 <div class="app">
 
 <div class="header">
-← <span>Asset Scan Result</span>
+<span onclick="goBack()">←</span>
+<span>Asset Scan Result</span>
 </div>
 
 <div id="reader"></div>
@@ -188,6 +190,10 @@ Scan another QR code to continue.
 const html5QrCode = new Html5Qrcode("reader")
 let scanned=false
 
+function goBack(){
+window.history.back()
+}
+
 function cleanID(text){
 
 let id=text.trim()
@@ -229,6 +235,12 @@ document.getElementById("reportBtn").onclick=function(){
 window.location="/report/"+a.ID_assets
 }
 
+navigator.vibrate(200)
+
+setTimeout(()=>{
+scanned=false
+},2000)
+
 }
 
 })
@@ -246,8 +258,12 @@ let cameraId=devices[devices.length-1].id
 html5QrCode.start(
 cameraId,
 {
-fps:15,
-qrbox:200
+fps:30,
+qrbox:{width:250,height:250},
+aspectRatio:1.0,
+videoConstraints:{
+facingMode:"environment"
+}
 },
 onScanSuccess,
 onScanFailure

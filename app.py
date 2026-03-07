@@ -40,7 +40,7 @@ def load_data():
         return data
 
     with open("aims.csv", newline="", encoding="utf-8-sig") as f:
-        reader = csv.DictReader(f, delimiter=",")
+        reader = csv.DictReader(f)
 
         for row in reader:
             asset_id = row.get("ID_assets")
@@ -174,21 +174,24 @@ def asset_detail(asset_id):
 def api_asset(asset_id):
 
     if "username" not in session:
-        return {"status": "error", "message": "not login"}
-
-    assets_data = load_data()
+        return jsonify({"status":"error","message":"not login"})
 
     asset_id = asset_id.strip()
+
+    assets_data = load_data()   # luôn đọc mới để tránh cache
 
     asset = assets_data.get(asset_id)
 
     if not asset:
-        return {"status": "error", "message": "not found"}
+        return jsonify({
+            "status":"error",
+            "message":"not found"
+        })
 
-    return {
-        "status": "ok",
-        "data": asset
-    }
+    return jsonify({
+        "status":"ok",
+        "data":asset
+    })
 # =========================
 # Trang báo cáo hư hỏng
 # =========================
@@ -249,6 +252,7 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
 
     app.run(host="0.0.0.0", port=port, debug=True)
+
 
 
 

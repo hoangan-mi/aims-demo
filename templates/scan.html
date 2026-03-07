@@ -44,14 +44,12 @@ font-size:20px;
 
 #reader{
 width:100%;
-height:240px;
+height:250px;
 background:black;
 border-radius:20px;
 overflow:hidden;
 position:relative;
 }
-
-/* FIX CAMERA RATIO */
 
 #reader video{
 width:100% !important;
@@ -63,35 +61,35 @@ object-fit:cover;
 
 .corner{
 position:absolute;
-width:40px;
-height:40px;
-border:5px solid white;
+width:50px;
+height:50px;
+border:6px solid white;
 }
 
 .tl{
-top:20px;
-left:20px;
+top:30px;
+left:30px;
 border-right:none;
 border-bottom:none;
 }
 
 .tr{
-top:20px;
-right:20px;
+top:30px;
+right:30px;
 border-left:none;
 border-bottom:none;
 }
 
 .bl{
-bottom:20px;
-left:20px;
+bottom:30px;
+left:30px;
 border-right:none;
 border-top:none;
 }
 
 .br{
-bottom:20px;
-right:20px;
+bottom:30px;
+right:30px;
 border-left:none;
 border-top:none;
 }
@@ -103,11 +101,11 @@ position:absolute;
 width:100%;
 height:3px;
 background:linear-gradient(90deg,transparent,#00ff9c,transparent);
-animation:scanMove 2s linear infinite;
+animation:scanMove 1.6s linear infinite;
 }
 
 @keyframes scanMove{
-0%{top:20px;}
+0%{top:30px;}
 100%{top:210px;}
 }
 
@@ -169,13 +167,8 @@ font-weight:600;
 cursor:pointer;
 }
 
-.btn-red{
-background:#ef4444;
-}
-
-.btn-green{
-background:#22c55e;
-}
+.btn-red{background:#ef4444;}
+.btn-green{background:#22c55e;}
 
 .footer{
 text-align:center;
@@ -287,7 +280,7 @@ function onScanSuccess(decodedText){
 let now=Date.now()
 let id=cleanID(decodedText)
 
-if(id===lastScan && now-lastTime<2000) return
+if(id===lastScan && now-lastTime<1500) return
 
 lastScan=id
 lastTime=now
@@ -327,8 +320,8 @@ let cameraId=devices[devices.length-1].id
 html5QrCode.start(
 cameraId,
 {
-fps:12,
-qrbox:{width:220,height:220}
+fps:20,
+qrbox:{width:260,height:160}
 },
 onScanSuccess
 )

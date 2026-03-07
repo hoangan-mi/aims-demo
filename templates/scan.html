@@ -3,7 +3,7 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
 <title>Asset Scan Result</title>
 
@@ -21,9 +21,9 @@ justify-content:center;
 
 .app{
 width:420px;
-min-height:100vh;
 background:white;
-padding:10px 16px 40px 16px;
+min-height:100vh;
+padding:12px;
 }
 
 .header{
@@ -37,7 +37,7 @@ margin-bottom:10px;
 
 .back{
 cursor:pointer;
-font-size:20px;
+font-size:22px;
 }
 
 /* SCANNER */
@@ -51,19 +51,21 @@ overflow:hidden;
 position:relative;
 }
 
+/* camera */
+
 #reader video{
 width:100% !important;
 height:100% !important;
 object-fit:cover;
 }
 
-/* CORNERS */
+/* corners */
 
 .corner{
 position:absolute;
-width:50px;
-height:50px;
-border:6px solid white;
+width:45px;
+height:45px;
+border:5px solid white;
 }
 
 .tl{top:30px;left:30px;border-right:none;border-bottom:none;}
@@ -71,20 +73,22 @@ border:6px solid white;
 .bl{bottom:30px;left:30px;border-right:none;border-top:none;}
 .br{bottom:30px;right:30px;border-left:none;border-top:none;}
 
-/* SCAN LINE */
+/* scan line */
 
 .scan-line{
 position:absolute;
 width:100%;
 height:3px;
 background:linear-gradient(90deg,transparent,#00ff9c,transparent);
-animation:scanMove 1.5s linear infinite;
+animation:scan 1.4s linear infinite;
 }
 
-@keyframes scanMove{
-0%{top:30px;}
-100%{top:220px;}
+@keyframes scan{
+0%{top:30px}
+100%{top:220px}
 }
+
+/* info */
 
 .success{
 display:none;
@@ -93,7 +97,7 @@ color:#16a34a;
 padding:10px;
 border-radius:10px;
 font-weight:600;
-margin-top:12px;
+margin-top:10px;
 }
 
 .card{
@@ -108,21 +112,21 @@ box-shadow:0 5px 18px rgba(0,0,0,0.08);
 .asset-title{
 font-size:18px;
 font-weight:700;
-margin-bottom:8px;
+margin-bottom:6px;
 }
 
 .asset-id{
-color:#777;
+color:#666;
 font-size:13px;
-margin-bottom:12px;
+margin-bottom:10px;
 }
 
 .grid{
 display:grid;
 grid-template-columns:1fr 1fr;
 gap:10px;
-font-size:14px;
 margin-bottom:14px;
+font-size:14px;
 }
 
 .buttons{
@@ -132,8 +136,8 @@ gap:10px;
 
 .btn{
 flex:1;
-border:none;
 padding:10px;
+border:none;
 border-radius:8px;
 color:white;
 font-weight:600;
@@ -145,13 +149,14 @@ cursor:pointer;
 
 .footer{
 text-align:center;
-color:#777;
 font-size:13px;
-margin-top:10px;
+color:#777;
+margin-top:8px;
 }
 
 </style>
 </head>
+
 
 <body>
 
@@ -174,7 +179,7 @@ margin-top:10px;
 </div>
 
 <div class="footer">
-Scan another QR code to continue.
+Scan another QR code to continue
 </div>
 
 <div class="success" id="success">
@@ -184,7 +189,6 @@ Scan another QR code to continue.
 <div class="card" id="assetCard">
 
 <div class="asset-title" id="assetName"></div>
-
 <div class="asset-id" id="assetID"></div>
 
 <div class="grid">
@@ -213,19 +217,24 @@ Scan another QR code to continue.
 
 <div class="buttons">
 
-<button class="btn btn-red">⚠ Báo hỏng</button>
+<button class="btn btn-red">
+⚠ Báo hỏng
+</button>
 
-<button class="btn btn-green">📍 Cập nhật vị trí</button>
+<button class="btn btn-green">
+📍 Cập nhật vị trí
+</button>
 
 </div>
 
 </div>
 
 </div>
+
 
 <script>
 
-const html5QrCode = new Html5Qrcode("reader")
+const scanner = new Html5Qrcode("reader")
 
 let lastScan=null
 let lastTime=0
@@ -253,7 +262,7 @@ lastScan=id
 lastTime=now
 
 fetch("/api/asset/"+encodeURIComponent(id))
-.then(res=>res.json())
+.then(r=>r.json())
 .then(data=>{
 
 if(data.status==="ok"){
@@ -278,16 +287,28 @@ navigator.vibrate(200)
 
 }
 
+/* START CAMERA */
+
 function startScanner(){
 
-html5QrCode.start(
-{ facingMode:"environment" },
+Html5Qrcode.getCameras().then(cameras=>{
+
+if(cameras.length){
+
+let cameraId=cameras[cameras.length-1].id
+
+scanner.start(
+cameraId,
 {
 fps:15,
-qrbox:{width:200,height:200}
+qrbox:200
 },
 onScanSuccess
 )
+
+}
+
+})
 
 }
 

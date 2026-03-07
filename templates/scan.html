@@ -134,7 +134,6 @@ margin-top:10px;
 <div class="card" id="assetCard">
 
 <div class="asset-title" id="assetName"></div>
-
 <div class="asset-id" id="assetID"></div>
 
 <div class="grid">
@@ -184,8 +183,7 @@ Scan another QR code to continue.
 <script>
 
 const html5QrCode = new Html5Qrcode("reader")
-
-let scanning = true
+let cameraId=null
 
 function goBack(){
 window.history.back()
@@ -205,11 +203,11 @@ return id.replace(/\r?\n|\r/g,"")
 
 function onScanSuccess(decodedText){
 
-if(!scanning) return
-
-scanning=false
-
 let id=cleanID(decodedText)
+
+/* tạm dừng scanner */
+
+html5QrCode.stop().then(()=>{
 
 fetch("/api/asset/"+encodeURIComponent(id))
 .then(res=>res.json())
@@ -237,11 +235,13 @@ navigator.vibrate(200)
 
 }
 
-/* cho phép scan QR khác */
+/* restart scanner để scan tiếp */
 
 setTimeout(()=>{
-scanning=true
-},700)
+startScanner()
+},500)
+
+})
 
 })
 
@@ -250,10 +250,6 @@ scanning=true
 function onScanFailure(error){}
 
 function startScanner(){
-
-Html5Qrcode.getCameras().then(devices=>{
-
-let cameraId=devices[devices.length-1].id
 
 html5QrCode.start(
 cameraId,
@@ -269,11 +265,21 @@ onScanSuccess,
 onScanFailure
 )
 
+}
+
+function initScanner(){
+
+Html5Qrcode.getCameras().then(devices=>{
+
+cameraId=devices[devices.length-1].id
+
+startScanner()
+
 })
 
 }
 
-window.onload=startScanner
+window.onload=initScanner
 
 </script>
 

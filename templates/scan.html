@@ -37,12 +37,81 @@ font-size:18px;
 cursor:pointer;
 }
 
+/* scanner box */
+
 #reader{
 width:100%;
-height:220px;
-border-radius:14px;
+height:230px;
+border-radius:20px;
 overflow:hidden;
+position:relative;
+background:black;
 margin-bottom:10px;
+}
+
+/* scan animation */
+
+.scan-line{
+position:absolute;
+left:0;
+width:100%;
+height:3px;
+background:linear-gradient(
+90deg,
+transparent,
+#00ff9c,
+transparent
+);
+animation:scanMove 2s linear infinite;
+}
+
+@keyframes scanMove{
+
+0%{
+top:20px;
+}
+
+100%{
+top:200px;
+}
+
+}
+
+/* corner style */
+
+.corner{
+position:absolute;
+width:40px;
+height:40px;
+border:5px solid white;
+}
+
+.corner.tl{
+top:20px;
+left:20px;
+border-right:none;
+border-bottom:none;
+}
+
+.corner.tr{
+top:20px;
+right:20px;
+border-left:none;
+border-bottom:none;
+}
+
+.corner.bl{
+bottom:20px;
+left:20px;
+border-right:none;
+border-top:none;
+}
+
+.corner.br{
+bottom:20px;
+right:20px;
+border-left:none;
+border-top:none;
 }
 
 .success{
@@ -125,7 +194,16 @@ margin-top:10px;
 <span>Asset Scan Result</span>
 </div>
 
-<div id="reader"></div>
+<div id="reader">
+
+<div class="scan-line"></div>
+
+<div class="corner tl"></div>
+<div class="corner tr"></div>
+<div class="corner bl"></div>
+<div class="corner br"></div>
+
+</div>
 
 <div class="success" id="success">
 ✔ Scan Successful
@@ -208,8 +286,6 @@ function onScanSuccess(decodedText){
 
 let now = Date.now()
 let id = cleanID(decodedText)
-
-/* tránh scan trùng trong 2 giây */
 
 if(id === lastScanned && now - lastScanTime < 2000){
 return

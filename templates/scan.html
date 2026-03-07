@@ -37,7 +37,7 @@ font-size:18px;
 cursor:pointer;
 }
 
-/* scanner box */
+/* SCANNER */
 
 #reader{
 width:100%;
@@ -47,72 +47,40 @@ overflow:hidden;
 position:relative;
 background:black;
 margin-bottom:10px;
+box-shadow:0 0 20px rgba(0,255,170,0.3);
 }
 
-/* scan animation */
+/* scan line */
 
 .scan-line{
 position:absolute;
 left:0;
 width:100%;
 height:3px;
-background:linear-gradient(
-90deg,
-transparent,
-#00ff9c,
-transparent
-);
-animation:scanMove 2s linear infinite;
+background:linear-gradient(90deg,transparent,#00ffa6,transparent);
+animation:scanMove 1.8s linear infinite;
 }
 
 @keyframes scanMove{
-
-0%{
-top:20px;
+0%{top:20px;}
+100%{top:200px;}
 }
 
-100%{
-top:200px;
-}
-
-}
-
-/* corner style */
+/* scan corners */
 
 .corner{
 position:absolute;
 width:40px;
 height:40px;
-border:5px solid white;
+border:5px solid #fff;
 }
 
-.corner.tl{
-top:20px;
-left:20px;
-border-right:none;
-border-bottom:none;
-}
+.tl{top:20px;left:20px;border-right:none;border-bottom:none;}
+.tr{top:20px;right:20px;border-left:none;border-bottom:none;}
+.bl{bottom:20px;left:20px;border-right:none;border-top:none;}
+.br{bottom:20px;right:20px;border-left:none;border-top:none;}
 
-.corner.tr{
-top:20px;
-right:20px;
-border-left:none;
-border-bottom:none;
-}
-
-.corner.bl{
-bottom:20px;
-left:20px;
-border-right:none;
-border-top:none;
-}
-
-.corner.br{
-bottom:20px;
-right:20px;
-border-left:none;
-border-top:none;
-}
+/* success */
 
 .success{
 background:#e8f7ef;
@@ -124,12 +92,22 @@ display:none;
 margin-bottom:10px;
 }
 
+/* asset card */
+
 .card{
 background:white;
 border-radius:14px;
 padding:15px;
 box-shadow:0 6px 20px rgba(0,0,0,0.08);
 display:none;
+transform:translateY(30px);
+opacity:0;
+transition:all .35s ease;
+}
+
+.card.show{
+transform:translateY(0);
+opacity:1;
 }
 
 .asset-title{
@@ -167,13 +145,8 @@ font-weight:600;
 cursor:pointer;
 }
 
-.btn-red{
-background:#ef4444;
-}
-
-.btn-green{
-background:#22c55e;
-}
+.btn-red{background:#ef4444;}
+.btn-green{background:#22c55e;}
 
 .footer{
 text-align:center;
@@ -190,7 +163,7 @@ margin-top:10px;
 <div class="app">
 
 <div class="header">
-<span onclick="goBack()">←</span>
+<span onclick="history.back()">←</span>
 <span>Asset Scan Result</span>
 </div>
 
@@ -263,12 +236,8 @@ Scan another QR code to continue.
 
 const html5QrCode = new Html5Qrcode("reader")
 
-let lastScanned = null
-let lastScanTime = 0
-
-function goBack(){
-window.history.back()
-}
+let lastScanned=null
+let lastTime=0
 
 function cleanID(text){
 
@@ -284,15 +253,13 @@ return id.replace(/\r?\n|\r/g,"")
 
 function onScanSuccess(decodedText){
 
-let now = Date.now()
-let id = cleanID(decodedText)
+let now=Date.now()
+let id=cleanID(decodedText)
 
-if(id === lastScanned && now - lastScanTime < 2000){
-return
-}
+if(id===lastScanned && now-lastTime<2000) return
 
-lastScanned = id
-lastScanTime = now
+lastScanned=id
+lastTime=now
 
 fetch("/api/asset/"+encodeURIComponent(id))
 .then(res=>res.json())
@@ -303,7 +270,13 @@ if(data.status==="ok"){
 let a=data.data
 
 document.getElementById("success").style.display="block"
-document.getElementById("assetCard").style.display="block"
+
+let card=document.getElementById("assetCard")
+card.style.display="block"
+
+setTimeout(()=>{
+card.classList.add("show")
+},50)
 
 document.getElementById("assetName").innerText=a.Type_asset
 document.getElementById("assetID").innerText=a.ID_assets
@@ -324,24 +297,21 @@ navigator.vibrate(200)
 
 }
 
-function onScanFailure(error){}
-
 function startScanner(){
 
 Html5Qrcode.getCameras().then(devices=>{
 
-let cameraId = devices[devices.length-1].id
+let cameraId=devices[devices.length-1].id
 
 html5QrCode.start(
 cameraId,
 {
-fps:10,
+fps:12,
 qrbox:{width:250,height:250},
 aspectRatio:1.0,
 disableFlip:true
 },
-onScanSuccess,
-onScanFailure
+onScanSuccess
 )
 
 })

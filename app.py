@@ -342,8 +342,17 @@ def update_location():
         writer.writerows(rows)
 
     return redirect("/asset/" + asset_id)
+@app.route("/update-location/<asset_id>")
+@require_role(["admin","manager"])
+def update_location_page(asset_id):
 
+    assets = load_assets()
+    asset = assets.get(asset_id)
 
+    if not asset:
+        return redirect("/scan")
+
+    return render_template("update_location.html", asset=asset)
 # =========================
 # SAVE LOCATION HISTORY
 # =========================
@@ -492,6 +501,7 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
 
     app.run(host="0.0.0.0", port=port, debug=True) 
+
 
 
 

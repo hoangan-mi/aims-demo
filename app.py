@@ -31,7 +31,7 @@ def require_role(roles):
 
 
 # =========================
-# ĐỌC USER
+# LOAD USERS
 # =========================
 def load_users():
 
@@ -51,7 +51,7 @@ def load_users():
 
 
 # =========================
-# ĐỌC TÀI SẢN
+# LOAD ASSETS
 # =========================
 def load_assets():
 
@@ -79,7 +79,7 @@ def load_assets():
 
 
 # =========================
-# CẬP NHẬT ATS
+# UPDATE ATS
 # =========================
 def update_ats(asset_id, minus):
 
@@ -111,7 +111,7 @@ def update_ats(asset_id, minus):
 
 
 # =========================
-# GHI ALERT
+# SAVE ALERT
 # =========================
 def save_alert(user, asset_id, expected_room, scanned_room, alert_type, description=""):
 
@@ -182,7 +182,7 @@ def logout():
 
 
 # =========================
-# TRANG CHỦ
+# HOME
 # =========================
 @app.route("/")
 @require_role(["admin","manager","user"])
@@ -192,7 +192,7 @@ def home():
 
 
 # =========================
-# SCAN QR
+# SCAN
 # =========================
 @app.route("/scan")
 @require_role(["admin","manager","user"])
@@ -202,7 +202,7 @@ def scan_qr():
 
 
 # =========================
-# DANH SÁCH TÀI SẢN
+# ASSETS LIST
 # =========================
 @app.route("/assets")
 @require_role(["admin","manager"])
@@ -229,7 +229,7 @@ def assets():
 
 
 # =========================
-# CHI TIẾT TÀI SẢN
+# ASSET DETAIL
 # =========================
 @app.route("/asset/<asset_id>")
 @require_role(["admin","manager","user"])
@@ -279,8 +279,9 @@ def asset_detail(asset_id):
 
     return render_template("asset.html", asset=asset)
 
+
 # =========================
-# API lấy thông tin tài sản (dùng cho scan QR realtime)
+# API ASSET
 # =========================
 @app.route("/api/asset/<asset_id>")
 def api_asset(asset_id):
@@ -288,11 +289,9 @@ def api_asset(asset_id):
     if "username" not in session:
         return {"status": "error", "message": "not login"}
 
-    assets_data = load_data()
+    assets = load_assets()
 
-    asset_id = asset_id.strip()
-
-    asset = assets_data.get(asset_id)
+    asset = assets.get(asset_id.strip())
 
     if not asset:
         return {"status": "error", "message": "not found"}
@@ -301,8 +300,74 @@ def api_asset(asset_id):
         "status": "ok",
         "data": asset
     }
+
+
 # =========================
-# BÁO HỎNG
+# UPDATE LOCATION
+# =========================
+@app.route("/update_location", methods=["POST"])
+@require_role(["admin","manager"])
+def update_location():
+
+    asset_id = request.form.get("asset_id")
+    building = request.form.get("building")
+    room = request.form.get("room")
+
+    rows = []
+
+    with open("aims.csv", newline="", encoding="utf-8-sig") as f:
+
+        reader = csv.DictReader(f)
+
+        for row in reader:
+
+            if row["ID_assets"].strip() == asset_id.strip():
+
+                old_room = row.get("Room")
+
+                row["Building"] = building
+                row["Room"] = room
+
+                save_location_history(asset_id, old_room, room)
+
+            rows.append(row)
+
+    with open("aims.csv", "w", newline="", encoding="utf-8") as f:
+
+        fieldnames = rows[0].keys()
+
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+
+        writer.writeheader()
+        writer.writerows(rows)
+
+    return redirect("/asset/" + asset_id)
+
+
+# =========================
+# SAVE LOCATION HISTORY
+# =========================
+def save_location_history(asset_id, old_room, new_room):
+
+    file_exists = os.path.exists("location_history.csv")
+
+    with open("location_history.csv", "a", newline="", encoding="utf-8") as f:
+
+        writer = csv.writer(f)
+
+        if not file_exists:
+            writer.writerow(["asset_id","old_room","new_room","time"])
+
+        writer.writerow([
+            asset_id,
+            old_room,
+            new_room,
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        ])
+
+
+# =========================
+# REPORT DAMAGE
 # =========================
 @app.route("/report/<asset_id>", methods=["GET", "POST"])
 @require_role(["admin","manager","user"])
@@ -335,7 +400,7 @@ def report(asset_id):
 
 
 # =========================
-# LỊCH SỬ QUÉT
+# HISTORY
 # =========================
 @app.route("/history")
 @require_role(["admin","manager"])
@@ -356,7 +421,7 @@ def history():
 
 
 # =========================
-# TÀI SẢN BẤT THƯỜNG
+# ABNORMAL
 # =========================
 @app.route("/abnormal")
 @require_role(["admin"])
@@ -377,7 +442,7 @@ def abnormal():
 
 
 # =========================
-# XOÁ ALERT
+# DELETE ALERT
 # =========================
 @app.route("/delete_abnormal", methods=["POST"])
 @require_role(["admin"])
@@ -418,7 +483,7 @@ def delete_abnormal():
 
 
 # =========================
-# CHẠY SERVER
+# RUN SERVER
 # =========================
 if __name__ == "__main__":
 

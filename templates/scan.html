@@ -1,208 +1,11 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>Asset Scan</title>
-
-<script src="https://unpkg.com/html5-qrcode@2.3.8"></script>
-
-<style>
-
-body{
-margin:0;
-font-family:Segoe UI;
-background:#f3f4f6;
-display:flex;
-justify-content:center;
-}
-
-.app{
-width:420px;
-background:white;
-min-height:100vh;
-padding:15px;
-}
-
-#reader{
-width:100%;
-border-radius:15px;
-overflow:hidden;
-margin-bottom:15px;
-}
-
-.card{
-display:none;
-background:white;
-padding:15px;
-border-radius:12px;
-box-shadow:0 5px 15px rgba(0,0,0,0.1);
-}
-
-.grid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:10px;
-margin-bottom:15px;
-}
-
-input{
-width:100%;
-padding:8px;
-margin-top:5px;
-border-radius:6px;
-border:1px solid #ccc;
-}
-
-button{
-padding:10px;
-border:none;
-border-radius:8px;
-color:white;
-font-weight:600;
-cursor:pointer;
-}
-
-.btn-red{
-background:#ef4444;
-}
-
-.btn-green{
-background:#22c55e;
-margin-top:10px;
-width:100%;
-}
-
-</style>
-
-</head>
-
-<body>
-
-<div class="app">
-
-<h3>Scan Asset</h3>
-
-<div id="reader"></div>
-
-<div class="card" id="assetCard">
-
-<h3 id="assetName"></h3>
-
-<p>ID: <span id="assetID"></span></p>
-
-<div class="grid">
-
-<div>
-<b>Building</b><br>
-<span id="assetBuilding"></span>
-</div>
-
-<div>
-<b>Floor</b><br>
-<span id="assetFloor"></span>
-</div>
-
-<div>
-<b>Room</b><br>
-<span id="assetRoom"></span>
-</div>
-
-<div>
-<b>Type</b><br>
-<span id="assetType"></span>
-</div>
-
-</div>
-
-<button class="btn-red" id="reportBtn">
-⚠ Báo hỏng
-</button>
-
-{% if session["role"] == "admin" or session["role"] == "manager" %}
-
-<form action="/update_location" method="POST">
-
-<input type="hidden" name="asset_id" id="assetIDinput">
-
-<label>Tòa</label>
-<input type="text" name="building" required>
-
-<label>Tầng</label>
-<input type="text" name="floor" required>
-
-<label>Phòng</label>
-<input type="text" name="room" required>
-
-<button class="btn-green">
-📍 Cập nhật vị trí
-</button>
-
-</form>
-
-{% endif %}
-
-</div>
-
-</div>
-
-
-<script>
-
-const html5QrCode = new Html5Qrcode("reader")
-
-let lastScan = null
-let lastTime = 0
-
-function cleanID(text){
-
-let id=text.trim()
-
-if(id.includes("/asset/")){
-id=id.split("/asset/")[1]
-}
-
-return id.replace(/\r?\n|\r/g,"")
-
-}
-
-
-function onScanSuccess(decodedText){
-
-let now = Date.now()
-
-let id = cleanID(decodedText)
-
-if(id === lastScan && now-lastTime < 2000) return
-
-lastScan = id
-lastTime = now
-
-
-fetch("/api/asset/"+encodeURIComponent(id))
-
-.then(res=>res.json())
-
-.then(data=>{
-
-if(data.status==="ok"){
-
-let a=data.data
-
-document.getElementById("assetCard").style.display="block"
-
-document.getElementById("assetName").innerText=a.Type_asset
-document.getElementById("assetID").innerText=a.ID_assets
-document.getElementById("assetBuilding").innerText=a.Building
+document.getElementById("assetAud").innerText=a.Auditorium
 document.getElementById("assetFloor").innerText=a.Floor
 document.getElementById("assetRoom").innerText=a.Room
 document.getElementById("assetType").innerText=a.Type_asset
 
-document.getElementById("assetIDinput").value=a.ID_assets
-
-navigator.vibrate(200)
+document.getElementById("reportBtn").onclick=function(){
+window.location="/report/"+a.ID_assets
+}
 
 }
 
@@ -210,21 +13,29 @@ navigator.vibrate(200)
 
 }
 
+function onScanFailure(error){}
+
+function startScanner(){
 
 Html5Qrcode.getCameras().then(devices=>{
 
-let cameraId = devices[devices.length-1].id
+let cameraId=devices[devices.length-1].id
 
 html5QrCode.start(
 cameraId,
 {
-fps:10,
-qrbox:{width:250,height:250}
+fps:15,
+qrbox:200
 },
-onScanSuccess
+onScanSuccess,
+onScanFailure
 )
 
 })
+
+}
+
+window.onload=startScanner
 
 </script>
 

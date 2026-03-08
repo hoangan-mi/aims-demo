@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -132,11 +133,11 @@ margin-bottom:15px;
 
 .buttons{
 display:flex;
+flex-direction:column;
 gap:10px;
 }
 
 .btn{
-flex:1;
 padding:10px;
 border:none;
 border-radius:8px;
@@ -147,6 +148,13 @@ cursor:pointer;
 
 .btn-red{background:#ef4444;}
 .btn-green{background:#22c55e;}
+
+input{
+padding:8px;
+border:1px solid #ddd;
+border-radius:6px;
+margin-bottom:6px;
+}
 
 .footer{
 text-align:center;
@@ -192,7 +200,7 @@ margin-top:10px;
 
 <div>
 <b>Tòa</b><br>
-<span id="assetAud"></span>
+<span id="assetBuilding"></span>
 </div>
 
 <div>
@@ -220,121 +228,5 @@ margin-top:10px;
 
 {% if session["role"] == "admin" or session["role"] == "manager" %}
 
-<form action="/update_location" method="POST" style="margin-top:15px">
-
-    <input type="hidden" name="asset_id" value="{{ asset.asset_id }}">
-
-    <input type="text" name="building" placeholder="Tòa mới" required>
-    <input type="text" name="floor" placeholder="Tầng mới" required>
-    <input type="text" name="room" placeholder="Phòng mới" required>
-
-    <button type="submit" class="btn-green">
-        📍 Cập nhật vị trí
-    </button>
-
-</form>
-
-{% endif %}
-
-</div>
-
-</div>
-
-<div class="footer">
-Scan another QR code to continue.
-</div>
-
-</div>
-
-<script>
-
-const html5QrCode = new Html5Qrcode("reader")
-
-let lastScanned=null
-let lastTime=0
-
-function cleanID(text){
-
-let id=text.trim()
-
-if(id.includes("/asset/")){
-id=id.split("/asset/")[1]
-}
-
-return id.replace(/\r?\n|\r/g,"")
-
-}
-
-function onScanSuccess(decodedText){
-
-let now=Date.now()
-let id=cleanID(decodedText)
-
-if(id===lastScanned && now-lastTime<2000) return
-
-lastScanned=id
-lastTime=now
-
-fetch("/api/asset/"+encodeURIComponent(id))
-.then(res=>res.json())
-.then(data=>{
-
-if(data.status==="ok"){
-
-let a=data.data
-
-document.getElementById("success").style.display="block"
-
-let card=document.getElementById("assetCard")
-card.style.display="block"
-
-setTimeout(()=>{
-card.classList.add("show")
-},50)
-
-document.getElementById("assetName").innerText=a.Type_asset
-document.getElementById("assetID").innerText=a.ID_assets
-document.getElementById("assetAud").innerText=a.Auditorium
-document.getElementById("assetFloor").innerText=a.Floor
-document.getElementById("assetRoom").innerText=a.Room
-document.getElementById("assetType").innerText=a.Type_asset
-
-document.getElementById("reportBtn").onclick=function(){
-window.location="/report/"+a.ID_assets
-}
-
-navigator.vibrate(200)
-
-}
-
-})
-
-}
-
-function startScanner(){
-
-Html5Qrcode.getCameras().then(devices=>{
-
-let cameraId=devices[devices.length-1].id
-
-html5QrCode.start(
-cameraId,
-{
-fps:12,
-qrbox:{width:250,height:250},
-aspectRatio:1.0,
-disableFlip:true
-},
-onScanSuccess
-)
-
-})
-
-}
-
-window.onload=startScanner
-
-</script>
-
-</body>
-</html>
+<form action="/update_location"_
+```

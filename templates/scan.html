@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -124,10 +125,13 @@ Asset Scan Result
 
 <div class="scan-box">
 <div id="reader"></div>
+
 <div class="scan-text">
 Scan another QR code to continue.
 </div>
+
 </div>
+
 
 <div class="card" id="assetCard">
 
@@ -159,9 +163,9 @@ Scan another QR code to continue.
 
 </div>
 
-<button class="btn-red">
-⚠ Báo hỏng
-</button>
+<a id="reportLink">
+<button class="btn-red">⚠ Báo hỏng</button>
+</a>
 
 {% if session["role"] == "admin" or session["role"] == "manager" %}
 
@@ -218,10 +222,11 @@ let now = Date.now()
 
 let id = cleanID(decodedText)
 
-if(id === lastScan && now-lastTime < 1500) return
+if(id === lastScan && now-lastTime < 400) return
 
 lastScan = id
 lastTime = now
+
 
 fetch("/api/asset/"+encodeURIComponent(id))
 
@@ -229,20 +234,24 @@ fetch("/api/asset/"+encodeURIComponent(id))
 
 .then(data=>{
 
+console.log(data)
+
 if(data.status==="ok"){
 
 let a=data.data
 
 document.getElementById("assetCard").style.display="block"
 
-document.getElementById("assetName").innerText=a.Type_asset
-document.getElementById("assetID").innerText=a.ID_assets
-document.getElementById("assetBuilding").innerText=a.Building
-document.getElementById("assetFloor").innerText=a.Floor
-document.getElementById("assetRoom").innerText=a.Room
-document.getElementById("assetType").innerText=a.Type_asset
+document.getElementById("assetName").innerText=a.Type_asset || "-"
+document.getElementById("assetID").innerText=a.ID_assets || "-"
+document.getElementById("assetBuilding").innerText=a.Building || "-"
+document.getElementById("assetFloor").innerText=a.Floor || "-"
+document.getElementById("assetRoom").innerText=a.Room || "-"
+document.getElementById("assetType").innerText=a.Type_asset || "-"
 
 document.getElementById("assetIDinput").value=a.ID_assets
+
+document.getElementById("reportLink").href="/report/"+a.ID_assets
 
 navigator.vibrate(200)
 
@@ -250,26 +259,65 @@ navigator.vibrate(200)
 
 })
 
+.catch(err=>{
+
+console.log("API error",err)
+
+})
+
 }
 
 
+function startScanner(){
+
 Html5Qrcode.getCameras().then(devices=>{
+
+if(!devices.length){
+
+alert("Không tìm thấy camera")
+
+return
+
+}
 
 let cameraId = devices[devices.length-1].id
 
+
 html5QrCode.start(
+
 cameraId,
+
 {
-fps:20,
-qrbox:{width:280,height:160},
-aspectRatio:1.777
+fps:15,
+qrbox:{width:300,height:180},
+aspectRatio:1.777,
+disableFlip:false
 },
+
 onScanSuccess
+
 )
 
+
+setTimeout(()=>{
+
+html5QrCode.applyVideoConstraints({
+
+focusMode:"continuous"
+
+}).catch(()=>{})
+
+},1000)
+
 })
+
+}
+
+
+window.onload=startScanner
 
 </script>
 
 </body>
 </html>
+```

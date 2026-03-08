@@ -100,6 +100,10 @@ def update_ats(asset_id, minus):
 
             rows.append(row)
 
+    # nếu file rỗng thì dừng
+    if not rows:
+        return
+
     with open("aims.csv", "w", newline="", encoding="utf-8") as f:
 
         fieldnames = rows[0].keys()
@@ -108,7 +112,6 @@ def update_ats(asset_id, minus):
 
         writer.writeheader()
         writer.writerows(rows)
-
 
 # =========================
 # SAVE ALERT
@@ -352,7 +355,7 @@ def update_location_page(asset_id):
     if not asset:
         return redirect("/scan")
 
-    return render_template("update_location.html", asset=asset)
+    return render_template("update-location.html", asset=asset)
 # =========================
 # SAVE LOCATION HISTORY
 # =========================
@@ -501,6 +504,7 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
 
     app.run(host="0.0.0.0", port=port, debug=True) 
+
 
 
 

@@ -220,9 +220,13 @@ margin-top:10px;
 
 {% if session["role"] == "admin" or session["role"] == "manager" %}
 
-<form action="/update_location" method="POST">
+<form action="/update_location" method="POST" style="margin-top:15px">
 
-    <input type="hidden" name="asset_id" value="{{ asset_id }}">
+    <input type="hidden" name="asset_id" value="{{ asset.asset_id }}">
+
+    <input type="text" name="building" placeholder="Tòa mới" required>
+    <input type="text" name="floor" placeholder="Tầng mới" required>
+    <input type="text" name="room" placeholder="Phòng mới" required>
 
     <button type="submit" class="btn-green">
         📍 Cập nhật vị trí

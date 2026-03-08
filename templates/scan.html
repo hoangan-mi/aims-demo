@@ -1,11 +1,9 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>Asset Scan</title>
+<title>Asset Scan Result</title>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8"></script>
 
@@ -23,24 +21,19 @@ justify-content:center;
 width:420px;
 background:white;
 min-height:100vh;
+padding:10px 15px 30px 15px;
 }
 
 .header{
 display:flex;
 align-items:center;
-padding:15px;
+gap:10px;
 font-weight:600;
-border-bottom:1px solid #eee;
+margin-bottom:10px;
 }
 
-.back{
-font-size:22px;
-margin-right:10px;
-cursor:pointer;
-}
-
-.scan-box{
-padding:15px;
+.header span{
+font-size:18px;
 }
 
 #reader{
@@ -51,41 +44,55 @@ overflow:hidden;
 margin-bottom:10px;
 }
 
+/* Scan success */
 
-/* video */
-
-#reader video{
-object-fit:cover;
+.success{
+background:#e8f7ef;
+color:#0f9d58;
+padding:10px;
+border-radius:10px;
+font-weight:600;
+display:none;
+margin-bottom:10px;
 }
 
-/* scan text */
-
-.scan-text{
-text-align:center;
-color:#666;
-font-size:14px;
-margin-top:10px;
-}
-
-/* RESULT CARD */
+/* Card */
 
 .card{
-display:none;
-margin:15px;
-padding:15px;
 background:white;
-border-radius:12px;
-box-shadow:0 5px 15px rgba(0,0,0,0.1);
+border-radius:14px;
+padding:15px;
+box-shadow:0 6px 20px rgba(0,0,0,0.08);
+display:none;
+}
+
+.asset-title{
+font-size:18px;
+font-weight:700;
+margin-bottom:10px;
+}
+
+.asset-id{
+color:#666;
+font-size:13px;
+margin-bottom:10px;
 }
 
 .grid{
 display:grid;
 grid-template-columns:1fr 1fr;
 gap:10px;
-margin-top:10px;
+font-size:14px;
+margin-bottom:15px;
 }
 
-button{
+.buttons{
+display:flex;
+gap:10px;
+}
+
+.btn{
+flex:1;
 padding:10px;
 border:none;
 border-radius:8px;
@@ -96,12 +103,20 @@ cursor:pointer;
 
 .btn-red{
 background:#ef4444;
+}
+
+.btn-green{
+background:#22c55e;
+}
+
+.footer{
+text-align:center;
+font-size:12px;
+color:#777;
 margin-top:10px;
-width:100%;
 }
 
 </style>
-
 </head>
 
 <body>
@@ -109,74 +124,69 @@ width:100%;
 <div class="app">
 
 <div class="header">
-<span class="back" onclick="history.back()">←</span>
-Asset Scan
+← <span>Asset Scan Result</span>
 </div>
-
-<div class="scan-box">
 
 <div id="reader"></div>
 
-<div class="scan-text">
-Scan QR để xem thông tin tài sản
+<div class="success" id="success">
+✔ Scan Successful
 </div>
-
-</div>
-
 
 <div class="card" id="assetCard">
 
-<h3 id="assetName"></h3>
+<div class="asset-title" id="assetName"></div>
 
-<p>ID: <span id="assetID"></span></p>
+<div class="asset-id" id="assetID"></div>
 
 <div class="grid">
 
 <div>
-<b>Auditorium</b><br>
-<span id="assetBuilding"></span>
+<b>Tòa</b><br>
+<span id="assetAud"></span>
 </div>
 
 <div>
-<b>Floor</b><br>
+<b>Tầng</b><br>
 <span id="assetFloor"></span>
 </div>
 
 <div>
-<b>Room</b><br>
+<b>Phòng</b><br>
 <span id="assetRoom"></span>
 </div>
 
 <div>
-<b>Type</b><br>
+<b>Loại</b><br>
 <span id="assetType"></span>
 </div>
 
 </div>
 
-<a id="reportLink">
-<button class="btn-red">⚠ Báo hỏng</button>
-</a>
+<div class="buttons">
 
-<a id="updateLink">
-<button style="background:#22c55e;margin-top:10px;width:100%;">
+<button class="btn btn-red" id="reportBtn">
+⚠ Báo hỏng
+</button>
+
+<button class="btn btn-green">
 📍 Cập nhật vị trí
 </button>
-</a>
-</a>
 
 </div>
 
 </div>
 
+<div class="footer">
+Scan another QR code to continue.
+</div>
+
+</div>
 
 <script>
 
 const html5QrCode = new Html5Qrcode("reader")
-
-let lastScan=""
-let lastTime=0
-
+let scanned=false
 
 function cleanID(text){
 
@@ -190,98 +200,62 @@ return id.replace(/\r?\n|\r/g,"")
 
 }
 
-
 function onScanSuccess(decodedText){
 
-let now=Date.now()
+if(scanned) return
+scanned=true
 
 let id=cleanID(decodedText)
 
-/* chống scan trùng */
-
-if(id===lastScan && now-lastTime<500) return
-
-lastScan=id
-lastTime=now
-
-
 fetch("/api/asset/"+encodeURIComponent(id))
-
 .then(res=>res.json())
-
 .then(data=>{
 
 if(data.status==="ok"){
 
 let a=data.data
 
+document.getElementById("success").style.display="block"
 document.getElementById("assetCard").style.display="block"
 
-document.getElementById("assetName").innerText=a.Type_asset || "-"
-document.getElementById("assetID").innerText=a.ID_assets || "-"
-document.getElementById("assetBuilding").innerText=a.Auditorium || "-"
-document.getElementById("assetFloor").innerText=a.Floor || "-"
-document.getElementById("assetRoom").innerText=a.Room || "-"
-document.getElementById("assetType").innerText=a.Type_asset || "-"
+document.getElementById("assetName").innerText=a.Type_asset
+document.getElementById("assetID").innerText=a.ID_assets
+document.getElementById("assetAud").innerText=a.Auditorium
+document.getElementById("assetFloor").innerText=a.Floor
+document.getElementById("assetRoom").innerText=a.Room
+document.getElementById("assetType").innerText=a.Type_asset
 
-document.getElementById("reportLink").href="/report/"+a.ID_assets
-document.getElementById("updateLink").href="/update-location/"+a.ID_assets
-
-navigator.vibrate(80)
+document.getElementById("reportBtn").onclick=function(){
+window.location="/report/"+a.ID_assets
+}
 
 }
 
 })
 
-.catch(()=>{})
-
 }
 
-
+function onScanFailure(error){}
 
 function startScanner(){
 
 Html5Qrcode.getCameras().then(devices=>{
 
-if(!devices.length){
-alert("Không tìm thấy camera")
-return
-}
-
-/* camera sau */
-
 let cameraId=devices[devices.length-1].id
 
-
 html5QrCode.start(
-
 cameraId,
-
 {
-fps:10,
-
-qrbox:function(viewfinderWidth,viewfinderHeight){
-
-let width=viewfinderWidth*0.85
-let height=viewfinderHeight*0.22
-
-return{
-width:width,
-height:height
-}
-
-}
-
+fps:15,
+qrbox:200
 },
-
-onScanSuccess
-
+onScanSuccess,
+onScanFailure
 )
 
 })
 
 }
-
 
 window.onload=startScanner
 

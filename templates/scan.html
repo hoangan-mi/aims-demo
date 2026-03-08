@@ -23,6 +23,27 @@ justify-content:center;
 width:420px;
 background:white;
 min-height:100vh;
+}
+
+/* HEADER */
+
+.header{
+display:flex;
+align-items:center;
+padding:15px;
+font-weight:600;
+border-bottom:1px solid #eee;
+}
+
+.back{
+font-size:22px;
+margin-right:10px;
+cursor:pointer;
+}
+
+/* SCANNER */
+
+.scan-box{
 padding:15px;
 }
 
@@ -30,13 +51,24 @@ padding:15px;
 width:100%;
 border-radius:15px;
 overflow:hidden;
-margin-bottom:15px;
 }
+
+/* TEXT */
+
+.scan-text{
+text-align:center;
+color:#666;
+font-size:14px;
+margin-top:10px;
+}
+
+/* RESULT CARD */
 
 .card{
 display:none;
-background:white;
+margin:15px;
 padding:15px;
+background:white;
 border-radius:12px;
 box-shadow:0 5px 15px rgba(0,0,0,0.1);
 }
@@ -45,15 +77,7 @@ box-shadow:0 5px 15px rgba(0,0,0,0.1);
 display:grid;
 grid-template-columns:1fr 1fr;
 gap:10px;
-margin-bottom:15px;
-}
-
-input{
-width:100%;
-padding:8px;
-margin-top:5px;
-border-radius:6px;
-border:1px solid #ccc;
+margin-top:10px;
 }
 
 button{
@@ -67,12 +91,22 @@ cursor:pointer;
 
 .btn-red{
 background:#ef4444;
+margin-top:10px;
+width:100%;
 }
 
 .btn-green{
 background:#22c55e;
 margin-top:10px;
 width:100%;
+}
+
+input{
+width:100%;
+padding:8px;
+margin-top:5px;
+border-radius:6px;
+border:1px solid #ccc;
 }
 
 </style>
@@ -83,9 +117,17 @@ width:100%;
 
 <div class="app">
 
-<h3>Scan Asset</h3>
+<div class="header">
+<span class="back" onclick="history.back()">←</span>
+Asset Scan Result
+</div>
 
+<div class="scan-box">
 <div id="reader"></div>
+<div class="scan-text">
+Scan another QR code to continue.
+</div>
+</div>
 
 <div class="card" id="assetCard">
 
@@ -117,7 +159,7 @@ width:100%;
 
 </div>
 
-<button class="btn-red" id="reportBtn">
+<button class="btn-red">
 ⚠ Báo hỏng
 </button>
 
@@ -156,50 +198,51 @@ const html5QrCode = new Html5Qrcode("reader")
 let lastScan = null
 let lastTime = 0
 
+
 function cleanID(text){
 
-let id = text.trim()
+let id=text.trim()
 
 if(id.includes("/asset/")){
-id = id.split("/asset/")[1]
+id=id.split("/asset/")[1]
 }
 
 return id.replace(/\r?\n|\r/g,"")
 
 }
 
+
 function onScanSuccess(decodedText){
 
 let now = Date.now()
+
 let id = cleanID(decodedText)
 
-if(id === lastScan && now - lastTime < 2000) return
+if(id === lastScan && now-lastTime < 1500) return
 
 lastScan = id
 lastTime = now
 
-fetch("/api/asset/" + encodeURIComponent(id))
+fetch("/api/asset/"+encodeURIComponent(id))
+
 .then(res=>res.json())
+
 .then(data=>{
 
 if(data.status==="ok"){
 
-let a = data.data
+let a=data.data
 
 document.getElementById("assetCard").style.display="block"
 
-document.getElementById("assetName").innerText = a.Type_asset
-document.getElementById("assetID").innerText = a.ID_assets
-document.getElementById("assetBuilding").innerText = a.Building
-document.getElementById("assetFloor").innerText = a.Floor
-document.getElementById("assetRoom").innerText = a.Room
-document.getElementById("assetType").innerText = a.Type_asset
+document.getElementById("assetName").innerText=a.Type_asset
+document.getElementById("assetID").innerText=a.ID_assets
+document.getElementById("assetBuilding").innerText=a.Building
+document.getElementById("assetFloor").innerText=a.Floor
+document.getElementById("assetRoom").innerText=a.Room
+document.getElementById("assetType").innerText=a.Type_asset
 
-document.getElementById("assetIDinput").value = a.ID_assets
-
-document.getElementById("reportBtn").onclick=function(){
-window.location="/report/"+a.ID_assets
-}
+document.getElementById("assetIDinput").value=a.ID_assets
 
 navigator.vibrate(200)
 
@@ -209,31 +252,22 @@ navigator.vibrate(200)
 
 }
 
-function startScanner(){
 
 Html5Qrcode.getCameras().then(devices=>{
-
-if(!devices.length){
-alert("No camera found")
-return
-}
 
 let cameraId = devices[devices.length-1].id
 
 html5QrCode.start(
 cameraId,
 {
-fps:15,
-qrbox:200
+fps:20,
+qrbox:{width:280,height:160},
+aspectRatio:1.777
 },
 onScanSuccess
 )
 
 })
-
-}
-
-window.onload = startScanner
 
 </script>
 

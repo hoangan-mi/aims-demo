@@ -1,11 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>Asset Scan</title>
 <title>Asset Scan Result</title>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8"></script>
@@ -14,18 +11,16 @@
 
 body{
 margin:0;
-font-family:Arial;
-background:#f4f4f4;
 font-family:Segoe UI;
 background:#f3f4f6;
 display:flex;
 justify-content:center;
 }
-@@ -23,73 +21,138 @@
+
+.app{
 width:420px;
 background:white;
 min-height:100vh;
-padding:12px;
 padding:10px 15px 30px 15px;
 }
 
@@ -33,7 +28,6 @@ padding:10px 15px 30px 15px;
 display:flex;
 align-items:center;
 gap:10px;
-font-size:20px;
 font-weight:600;
 margin-bottom:10px;
 }
@@ -43,82 +37,14 @@ font-size:18px;
 cursor:pointer;
 }
 
-/* SCANNER */
-
 #reader{
 width:100%;
-height:260px;
-background:black;
-height:230px;
-border-radius:20px;
+height:220px;
+border-radius:14px;
 overflow:hidden;
-position:relative;
-background:black;
 margin-bottom:10px;
-box-shadow:0 0 20px rgba(0,255,170,0.3);
 }
 
-/* CAMERA VIDEO */
-
-#reader video{
-width:100% !important;
-height:100% !important;
-object-fit:cover;
-}
-
-/* OVERLAY (không chặn scan) */
-/* scan line */
-
-.overlay{
-.scan-line{
-position:absolute;
-top:0;
-left:0;
-right:0;
-bottom:0;
-pointer-events:none;
-width:100%;
-height:3px;
-background:linear-gradient(90deg,transparent,#00ffa6,transparent);
-animation:scanMove 1.8s linear infinite;
-}
-
-@keyframes scanMove{
-0%{top:20px;}
-100%{top:200px;}
-}
-
-/* SCAN CORNERS */
-/* scan corners */
-
-.corner{
-position:absolute;
-width:50px;
-height:50px;
-border:5px solid white;
-width:40px;
-height:40px;
-border:5px solid #fff;
-}
-
-.tl{top:30px;left:30px;border-right:none;border-bottom:none;}
-.tr{top:30px;right:30px;border-left:none;border-bottom:none;}
-.bl{bottom:30px;left:30px;border-right:none;border-top:none;}
-.br{bottom:30px;right:30px;border-left:none;border-top:none;}
-.tl{top:20px;left:20px;border-right:none;border-bottom:none;}
-.tr{top:20px;right:20px;border-left:none;border-bottom:none;}
-.bl{bottom:20px;left:20px;border-right:none;border-top:none;}
-.br{bottom:20px;right:20px;border-left:none;border-top:none;}
-
-/* SCAN LINE */
-/* success */
-
-.scan-line{
-position:absolute;
-width:100%;
-height:3px;
-background:linear-gradient(90deg,transparent,#00ff9c,transparent);
-animation:scan 1.5s linear infinite;
 .success{
 background:#e8f7ef;
 color:#0f9d58;
@@ -129,25 +55,12 @@ display:none;
 margin-bottom:10px;
 }
 
-@keyframes scan{
-0%{top:30px;}
-100%{top:220px;}
-/* asset card */
-
 .card{
 background:white;
 border-radius:14px;
 padding:15px;
 box-shadow:0 6px 20px rgba(0,0,0,0.08);
 display:none;
-transform:translateY(30px);
-opacity:0;
-transition:all .35s ease;
-}
-
-.card.show{
-transform:translateY(0);
-opacity:1;
 }
 
 .asset-title{
@@ -185,8 +98,13 @@ font-weight:600;
 cursor:pointer;
 }
 
-.btn-red{background:#ef4444;}
-.btn-green{background:#22c55e;}
+.btn-red{
+background:#ef4444;
+}
+
+.btn-green{
+background:#22c55e;
+}
 
 .footer{
 text-align:center;
@@ -196,26 +114,18 @@ margin-top:10px;
 }
 
 </style>
-@@ -100,14 +163,12 @@
+</head>
+
+<body>
+
 <div class="app">
 
 <div class="header">
-<div onclick="history.back()">←</div>
-<div>Asset Scan</div>
-<span onclick="history.back()">←</span>
+<span onclick="goBack()">←</span>
 <span>Asset Scan Result</span>
 </div>
 
-<div id="reader">
-
-<div class="overlay">
-
-<div class="scan-line"></div>
-
-<div class="corner tl"></div>
-@@ -117,36 +178,138 @@
-
-</div>
+<div id="reader"></div>
 
 <div class="success" id="success">
 ✔ Scan Successful
@@ -273,11 +183,14 @@ Scan another QR code to continue.
 
 <script>
 
-const scanner = new Html5Qrcode("reader")
 const html5QrCode = new Html5Qrcode("reader")
 
-let lastScanned=null
-let lastTime=0
+let lastScanned = null
+let lastScanTime = 0
+
+function goBack(){
+window.history.back()
+}
 
 function cleanID(text){
 
@@ -292,16 +205,18 @@ return id.replace(/\r?\n|\r/g,"")
 }
 
 function onScanSuccess(decodedText){
-console.log("QR:", decodedText)
-alert(decodedText)
 
-let now=Date.now()
-let id=cleanID(decodedText)
+let now = Date.now()
+let id = cleanID(decodedText)
 
-if(id===lastScanned && now-lastTime<2000) return
+/* tránh scan trùng trong 2 giây */
 
-lastScanned=id
-lastTime=now
+if(id === lastScanned && now - lastScanTime < 2000){
+return
+}
+
+lastScanned = id
+lastScanTime = now
 
 fetch("/api/asset/"+encodeURIComponent(id))
 .then(res=>res.json())
@@ -312,13 +227,7 @@ if(data.status==="ok"){
 let a=data.data
 
 document.getElementById("success").style.display="block"
-
-let card=document.getElementById("assetCard")
-card.style.display="block"
-
-setTimeout(()=>{
-card.classList.add("show")
-},50)
+document.getElementById("assetCard").style.display="block"
 
 document.getElementById("assetName").innerText=a.Type_asset
 document.getElementById("assetID").innerText=a.ID_assets
@@ -331,45 +240,38 @@ document.getElementById("reportBtn").onclick=function(){
 window.location="/report/"+a.ID_assets
 }
 
-function startScanner(){
 navigator.vibrate(200)
 
-Html5Qrcode.getCameras().then(cameras => {
 }
 
 })
 
-if(!cameras.length){
-alert("No camera")
-return
 }
 
-const cameraId = cameras[cameras.length-1].id
+function onScanFailure(error){}
+
 function startScanner(){
 
 Html5Qrcode.getCameras().then(devices=>{
 
-let cameraId=devices[devices.length-1].id
+let cameraId = devices[devices.length-1].id
 
-scanner.start(
 html5QrCode.start(
 cameraId,
 {
 fps:10,
-qrbox:220,
-aspectRatio:1
-fps:12,
 qrbox:{width:250,height:250},
 aspectRatio:1.0,
 disableFlip:true
 },
-onScanSuccess
+onScanSuccess,
+onScanFailure
 )
-@@ -155,10 +318,9 @@
+
+})
 
 }
 
-window.onload = startScanner
 window.onload=startScanner
 
 </script>

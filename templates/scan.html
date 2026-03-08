@@ -218,9 +218,19 @@ margin-top:10px;
 ⚠ Báo hỏng
 </button>
 
-<button class="btn btn-green">
-📍 Cập nhật vị trí
-</button>
+{% if session["role"] == "admin" or session["role"] == "manager" %}
+
+<form action="/update_location" method="POST">
+
+    <input type="hidden" name="asset_id" value="{{ asset_id }}">
+
+    <button type="submit" class="btn-green">
+        📍 Cập nhật vị trí
+    </button>
+
+</form>
+
+{% endif %}
 
 </div>
 

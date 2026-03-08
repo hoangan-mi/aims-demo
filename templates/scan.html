@@ -163,14 +163,13 @@ margin-top:10px;
 
 <div class="buttons">
 
-<button class="btn btn-red" id="reportBtn">
+<a id="reportBtn" class="btn btn-red">
 ⚠ Báo hỏng
-</button>
+</a>
 
-<button class="btn btn-green">
+<a id="updateBtn" class="btn btn-green">
 📍 Cập nhật vị trí
-</button>
-
+</a>
 </div>
 
 </div>
@@ -238,6 +237,7 @@ document.getElementById("assetType").innerText=a.Type_asset
 
 document.getElementById("reportBtn").onclick=function(){
 window.location="/report/"+a.ID_assets
+document.getElementById("updateBtn").href="/update_location/"+a.ID_assets
 }
 
 navigator.vibrate(200)

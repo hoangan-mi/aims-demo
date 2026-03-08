@@ -398,7 +398,9 @@ def report(asset_id):
 
     return render_template("report_form.html", asset=asset)
 
-
+@app.route("/report-success")
+def report_success():
+    return render_template("report_success.html")
 # =========================
 # HISTORY
 # =========================
@@ -490,3 +492,4 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
 
     app.run(host="0.0.0.0", port=port, debug=True) 
+

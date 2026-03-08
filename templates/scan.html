@@ -1,8 +1,6 @@
-<html></html>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -111,7 +109,6 @@ border:1px solid #ccc;
 }
 
 </style>
-
 </head>
 
 <body>
@@ -129,7 +126,6 @@ Asset Scan Result
 <div class="scan-text">
 Scan another QR code to continue.
 </div>
-
 </div>
 
 
@@ -142,8 +138,8 @@ Scan another QR code to continue.
 <div class="grid">
 
 <div>
-<b>Auditorium</b><br>
-<span id="assetAuditorium"></span>
+<b>Building</b><br>
+<span id="assetBuilding"></span>
 </div>
 
 <div>
@@ -199,16 +195,16 @@ Scan another QR code to continue.
 
 const html5QrCode = new Html5Qrcode("reader")
 
-let lastScan = null
+let lastScan = ""
 let lastTime = 0
 
 
 function cleanID(text){
 
-let id=text.trim()
+let id = text.trim()
 
 if(id.includes("/asset/")){
-id=id.split("/asset/")[1]
+id = id.split("/asset/")[1]
 }
 
 return id.replace(/\r?\n|\r/g,"")
@@ -222,50 +218,43 @@ let now = Date.now()
 
 let id = cleanID(decodedText)
 
-if(id === lastScan && now-lastTime < 400) return
+/* cho phép scan liên tục */
+if(id === lastScan && now-lastTime < 300) return
 
 lastScan = id
 lastTime = now
 
 
 fetch("/api/asset/"+encodeURIComponent(id))
-
 .then(res=>res.json())
-
 .then(data=>{
-
-console.log(data)
 
 if(data.status==="ok"){
 
-let a=data.data
+let a = data.data
 
 document.getElementById("assetCard").style.display="block"
 
-document.getElementById("assetName").innerText=a.Type_asset || "-"
-document.getElementById("assetID").innerText=a.ID_assets || "-"
-document.getElementById("assetBuilding").innerText=a.Building || "-"
-document.getElementById("assetFloor").innerText=a.Floor || "-"
-document.getElementById("assetRoom").innerText=a.Room || "-"
-document.getElementById("assetType").innerText=a.Type_asset || "-"
+document.getElementById("assetName").innerText = a.Type_asset || "-"
+document.getElementById("assetID").innerText = a.ID_assets || "-"
+document.getElementById("assetBuilding").innerText = a.Building || "-"
+document.getElementById("assetFloor").innerText = a.Floor || "-"
+document.getElementById("assetRoom").innerText = a.Room || "-"
+document.getElementById("assetType").innerText = a.Type_asset || "-"
 
-document.getElementById("assetIDinput").value=a.ID_assets
+document.getElementById("assetIDinput").value = a.ID_assets
 
-document.getElementById("reportLink").href="/report/"+a.ID_assets
+document.getElementById("reportLink").href = "/report/" + a.ID_assets
 
-navigator.vibrate(200)
+navigator.vibrate(100)
 
 }
 
 })
-
-.catch(err=>{
-
-console.log("API error",err)
-
-})
+.catch(()=>{})
 
 }
+
 
 
 function startScanner(){
@@ -273,51 +262,30 @@ function startScanner(){
 Html5Qrcode.getCameras().then(devices=>{
 
 if(!devices.length){
-
 alert("Không tìm thấy camera")
-
 return
-
 }
 
 let cameraId = devices[devices.length-1].id
 
-
 html5QrCode.start(
-
 cameraId,
-
 {
-fps:15,
+fps:30,
 qrbox:{width:300,height:180},
 aspectRatio:1.777,
 disableFlip:false
 },
-
 onScanSuccess
-
 )
-
-
-setTimeout(()=>{
-
-html5QrCode.applyVideoConstraints({
-
-focusMode:"continuous"
-
-}).catch(()=>{})
-
-},1000)
 
 })
 
 }
 
-
-window.onload=startScanner
+window.onload = startScanner
 
 </script>
 
 </body>
 </html>
-<>

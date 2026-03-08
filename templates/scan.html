@@ -45,6 +45,7 @@ padding:15px;
 
 #reader{
 width:100%;
+height:45vh;
 border-radius:15px;
 overflow:hidden;
 position:relative;
@@ -156,6 +157,13 @@ Scan QR để xem thông tin tài sản
 <button class="btn-red">⚠ Báo hỏng</button>
 </a>
 
+<a id="updateLink">
+<button style="background:#22c55e;margin-top:10px;width:100%;">
+📍 Cập nhật vị trí
+</button>
+</a>
+</a>
+
 </div>
 
 </div>
@@ -216,6 +224,7 @@ document.getElementById("assetRoom").innerText=a.Room || "-"
 document.getElementById("assetType").innerText=a.Type_asset || "-"
 
 document.getElementById("reportLink").href="/report/"+a.ID_assets
+document.getElementById("updateLink").href="/update-location/"+a.ID_assets
 
 navigator.vibrate(80)
 

@@ -1,10 +1,11 @@
-```html
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Asset Scan Result</title>
+
+<title>Asset Scan</title>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8"></script>
 
@@ -22,122 +23,40 @@ justify-content:center;
 width:420px;
 background:white;
 min-height:100vh;
-padding:10px 15px 30px 15px;
+padding:15px;
 }
-
-.header{
-display:flex;
-align-items:center;
-gap:10px;
-font-weight:600;
-margin-bottom:10px;
-}
-
-.header span{
-font-size:18px;
-cursor:pointer;
-}
-
-/* SCANNER */
 
 #reader{
 width:100%;
-height:230px;
-border-radius:20px;
+border-radius:15px;
 overflow:hidden;
-position:relative;
-background:black;
-margin-bottom:10px;
-box-shadow:0 0 20px rgba(0,255,170,0.3);
+margin-bottom:15px;
 }
-
-/* scan line */
-
-.scan-line{
-position:absolute;
-left:0;
-width:100%;
-height:3px;
-background:linear-gradient(90deg,transparent,#00ffa6,transparent);
-animation:scanMove 1.8s linear infinite;
-}
-
-@keyframes scanMove{
-0%{top:20px;}
-100%{top:200px;}
-}
-
-/* scan corners */
-
-.corner{
-position:absolute;
-width:40px;
-height:40px;
-border:5px solid #fff;
-}
-
-.tl{top:20px;left:20px;border-right:none;border-bottom:none;}
-.tr{top:20px;right:20px;border-left:none;border-bottom:none;}
-.bl{bottom:20px;left:20px;border-right:none;border-top:none;}
-.br{bottom:20px;right:20px;border-left:none;border-top:none;}
-
-/* success */
-
-.success{
-background:#e8f7ef;
-color:#0f9d58;
-padding:10px;
-border-radius:10px;
-font-weight:600;
-display:none;
-margin-bottom:10px;
-}
-
-/* asset card */
 
 .card{
-background:white;
-border-radius:14px;
-padding:15px;
-box-shadow:0 6px 20px rgba(0,0,0,0.08);
 display:none;
-transform:translateY(30px);
-opacity:0;
-transition:all .35s ease;
-}
-
-.card.show{
-transform:translateY(0);
-opacity:1;
-}
-
-.asset-title{
-font-size:18px;
-font-weight:700;
-margin-bottom:10px;
-}
-
-.asset-id{
-color:#666;
-font-size:13px;
-margin-bottom:10px;
+background:white;
+padding:15px;
+border-radius:12px;
+box-shadow:0 5px 15px rgba(0,0,0,0.1);
 }
 
 .grid{
 display:grid;
 grid-template-columns:1fr 1fr;
 gap:10px;
-font-size:14px;
 margin-bottom:15px;
 }
 
-.buttons{
-display:flex;
-flex-direction:column;
-gap:10px;
+input{
+width:100%;
+padding:8px;
+margin-top:5px;
+border-radius:6px;
+border:1px solid #ccc;
 }
 
-.btn{
+button{
 padding:10px;
 border:none;
 border-radius:8px;
@@ -146,87 +65,168 @@ font-weight:600;
 cursor:pointer;
 }
 
-.btn-red{background:#ef4444;}
-.btn-green{background:#22c55e;}
-
-input{
-padding:8px;
-border:1px solid #ddd;
-border-radius:6px;
-margin-bottom:6px;
+.btn-red{
+background:#ef4444;
 }
 
-.footer{
-text-align:center;
-font-size:12px;
-color:#777;
+.btn-green{
+background:#22c55e;
 margin-top:10px;
+width:100%;
 }
 
 </style>
+
 </head>
 
 <body>
 
 <div class="app">
 
-<div class="header">
-<span onclick="history.back()">←</span>
-<span>Asset Scan Result</span>
-</div>
+<h3>Scan Asset</h3>
 
-<div id="reader">
-
-<div class="scan-line"></div>
-
-<div class="corner tl"></div>
-<div class="corner tr"></div>
-<div class="corner bl"></div>
-<div class="corner br"></div>
-
-</div>
-
-<div class="success" id="success">
-✔ Scan Successful
-</div>
+<div id="reader"></div>
 
 <div class="card" id="assetCard">
 
-<div class="asset-title" id="assetName"></div>
+<h3 id="assetName"></h3>
 
-<div class="asset-id" id="assetID"></div>
+<p>ID: <span id="assetID"></span></p>
 
 <div class="grid">
 
 <div>
-<b>Tòa</b><br>
+<b>Building</b><br>
 <span id="assetBuilding"></span>
 </div>
 
 <div>
-<b>Tầng</b><br>
+<b>Floor</b><br>
 <span id="assetFloor"></span>
 </div>
 
 <div>
-<b>Phòng</b><br>
+<b>Room</b><br>
 <span id="assetRoom"></span>
 </div>
 
 <div>
-<b>Loại</b><br>
+<b>Type</b><br>
 <span id="assetType"></span>
 </div>
 
 </div>
 
-<div class="buttons">
-
-<button class="btn btn-red" id="reportBtn">
+<button class="btn-red" id="reportBtn">
 ⚠ Báo hỏng
 </button>
 
 {% if session["role"] == "admin" or session["role"] == "manager" %}
 
-<form action="/update_location"_
-```
+<form action="/update_location" method="POST">
+
+<input type="hidden" name="asset_id" id="assetIDinput">
+
+<label>Tòa</label>
+<input type="text" name="building" required>
+
+<label>Tầng</label>
+<input type="text" name="floor" required>
+
+<label>Phòng</label>
+<input type="text" name="room" required>
+
+<button class="btn-green">
+📍 Cập nhật vị trí
+</button>
+
+</form>
+
+{% endif %}
+
+</div>
+
+</div>
+
+
+<script>
+
+const html5QrCode = new Html5Qrcode("reader")
+
+let lastScan = null
+let lastTime = 0
+
+function cleanID(text){
+
+let id=text.trim()
+
+if(id.includes("/asset/")){
+id=id.split("/asset/")[1]
+}
+
+return id.replace(/\r?\n|\r/g,"")
+
+}
+
+
+function onScanSuccess(decodedText){
+
+let now = Date.now()
+
+let id = cleanID(decodedText)
+
+if(id === lastScan && now-lastTime < 2000) return
+
+lastScan = id
+lastTime = now
+
+
+fetch("/api/asset/"+encodeURIComponent(id))
+
+.then(res=>res.json())
+
+.then(data=>{
+
+if(data.status==="ok"){
+
+let a=data.data
+
+document.getElementById("assetCard").style.display="block"
+
+document.getElementById("assetName").innerText=a.Type_asset
+document.getElementById("assetID").innerText=a.ID_assets
+document.getElementById("assetBuilding").innerText=a.Building
+document.getElementById("assetFloor").innerText=a.Floor
+document.getElementById("assetRoom").innerText=a.Room
+document.getElementById("assetType").innerText=a.Type_asset
+
+document.getElementById("assetIDinput").value=a.ID_assets
+
+navigator.vibrate(200)
+
+}
+
+})
+
+}
+
+
+Html5Qrcode.getCameras().then(devices=>{
+
+let cameraId = devices[devices.length-1].id
+
+html5QrCode.start(
+cameraId,
+{
+fps:10,
+qrbox:{width:250,height:250}
+},
+onScanSuccess
+)
+
+})
+
+</script>
+
+</body>
+</html>

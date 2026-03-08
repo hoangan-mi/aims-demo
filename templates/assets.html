@@ -102,6 +102,8 @@ a.detail:hover{
 <a href="/">🏠 Trang chủ</a>
 <a href="/assets">📋 Danh sách tài sản</a>
 <a href="/scan">📷 Quét QR</a>
+<a href="/history">📜 Lịch sử quét</a>
+<a href="/abnormal">⚠️ Tài sản bất thường</a>
 <a href="/logout">🚪 Đăng xuất</a>
 
 </div>
@@ -115,6 +117,17 @@ a.detail:hover{
 
 <h2>📋 Danh sách tài sản</h2>
 
+<form method="GET">
+
+<input type="text" name="room" placeholder="Tìm theo phòng">
+
+<input type="text" name="type" placeholder="Tìm theo loại tài sản">
+
+<button type="submit">Tìm</button>
+
+</form>
+
+<br>
 <table>
 
 <tr>
@@ -123,6 +136,12 @@ a.detail:hover{
 <th>Tầng</th>
 <th>Phòng</th>
 <th>Loại</th>
+<th>STT</th> 
+<th>Mô tả</th>
+<th>Năm</th>
+<th>Xuất xứ</th>
+<th>Tình trạng</th>
+<th>ATS</th>
 <th>Xem</th>
 </tr>
 
@@ -134,7 +153,12 @@ a.detail:hover{
 <td>{{ asset["Floor"] }}</td>
 <td>{{ asset["Room"] }}</td>
 <td>{{ asset["Type_asset"] }}</td>
-
+<td>{{ asset["Ordinal_number"] }}</td>
+<td>{{ asset["Description"] }}</td>
+<td>{{ asset["Year"] }}</td>
+<td>{{ asset["Origin"] }}</td>
+<td>{{ asset["Status"] }}</td>
+<td>{{ asset["ATS"] }}</td>
 <td>
 <a class="detail" href="/asset/{{ asset['ID_assets'] }}">
 Chi tiết

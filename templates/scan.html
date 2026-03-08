@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -44,16 +45,18 @@ padding:15px;
 
 #reader{
 width:100%;
-height:220px;
 border-radius:15px;
 overflow:hidden;
+position:relative;
 }
 
+/* video */
+
 #reader video{
-width:100%;
-height:100%;
 object-fit:cover;
 }
+
+/* scan text */
 
 .scan-text{
 text-align:center;
@@ -61,6 +64,8 @@ color:#666;
 font-size:14px;
 margin-top:10px;
 }
+
+/* RESULT CARD */
 
 .card{
 display:none;
@@ -93,13 +98,8 @@ margin-top:10px;
 width:100%;
 }
 
-.btn-green{
-background:#22c55e;
-margin-top:10px;
-width:100%;
-}
-
 </style>
+
 </head>
 
 <body>
@@ -108,7 +108,7 @@ width:100%;
 
 <div class="header">
 <span class="back" onclick="history.back()">←</span>
-Asset Scan Result
+Asset Scan
 </div>
 
 <div class="scan-box">
@@ -116,7 +116,7 @@ Asset Scan Result
 <div id="reader"></div>
 
 <div class="scan-text">
-Scan another QR code to continue.
+Scan QR để xem thông tin tài sản
 </div>
 
 </div>
@@ -132,7 +132,7 @@ Scan another QR code to continue.
 
 <div>
 <b>Auditorium</b><br>
-<span id="assetAuditorium"></span>
+<span id="assetBuilding"></span>
 </div>
 
 <div>
@@ -156,10 +156,6 @@ Scan another QR code to continue.
 <button class="btn-red">⚠ Báo hỏng</button>
 </a>
 
-<button class="btn-green" onclick="goUpdateLocation()">
-📍 Cập nhật vị trí
-</button>
-
 </div>
 
 </div>
@@ -171,7 +167,7 @@ const html5QrCode = new Html5Qrcode("reader")
 
 let lastScan=""
 let lastTime=0
-let currentAssetID=""
+
 
 function cleanID(text){
 
@@ -192,40 +188,45 @@ let now=Date.now()
 
 let id=cleanID(decodedText)
 
-if(id===lastScan && now-lastTime<300) return
+/* chống scan trùng */
+
+if(id===lastScan && now-lastTime<500) return
 
 lastScan=id
 lastTime=now
 
 
 fetch("/api/asset/"+encodeURIComponent(id))
+
 .then(res=>res.json())
+
 .then(data=>{
 
 if(data.status==="ok"){
 
 let a=data.data
 
-currentAssetID=a.ID_assets
-
 document.getElementById("assetCard").style.display="block"
 
-document.getElementById("assetName").innerText=a.Type_asset||"-"
-document.getElementById("assetID").innerText=a.ID_assets||"-"
-document.getElementById("assetAuditorium").innerText=a.Auditorium||"-"
-document.getElementById("assetFloor").innerText=a.Floor||"-"
-document.getElementById("assetRoom").innerText=a.Room||"-"
-document.getElementById("assetType").innerText=a.Type_asset||"-"
+document.getElementById("assetName").innerText=a.Type_asset || "-"
+document.getElementById("assetID").innerText=a.ID_assets || "-"
+document.getElementById("assetBuilding").innerText=a.Auditorium || "-"
+document.getElementById("assetFloor").innerText=a.Floor || "-"
+document.getElementById("assetRoom").innerText=a.Room || "-"
+document.getElementById("assetType").innerText=a.Type_asset || "-"
 
 document.getElementById("reportLink").href="/report/"+a.ID_assets
 
-navigator.vibrate(100)
+navigator.vibrate(80)
 
 }
 
 })
 
+.catch(()=>{})
+
 }
+
 
 
 function startScanner(){
@@ -237,33 +238,40 @@ alert("Không tìm thấy camera")
 return
 }
 
+/* camera sau */
+
 let cameraId=devices[devices.length-1].id
 
+
 html5QrCode.start(
+
 cameraId,
+
 {
-fps:30,
-qrbox:{width:260,height:100},
-aspectRatio:1.777
+fps:10,
+
+qrbox:function(viewfinderWidth,viewfinderHeight){
+
+let width=viewfinderWidth*0.85
+let height=viewfinderHeight*0.22
+
+return{
+width:width,
+height:height
+}
+
+}
+
 },
+
 onScanSuccess
+
 )
 
 })
 
 }
 
-
-function goUpdateLocation(){
-
-if(!currentAssetID){
-alert("Chưa scan asset")
-return
-}
-
-window.location.href="/update-location/"+currentAssetID
-
-}
 
 window.onload=startScanner
 

@@ -141,7 +141,18 @@ Hệ thống quản lý tài sản thông minh tích hợp QR Code
 <p>
 Xin chào: <b>{{ session.username }}</b>
 </p>
-
+{% if session.current_room %}
+<div style="
+background:#dcfce7;
+color:#166534;
+padding:12px;
+border-radius:10px;
+margin-top:15px;
+font-weight:600;
+">
+📍 Đang quét phòng: {{ session.current_room }}
+</div>
+{% endif %}
 <br>
 
 <a href="/assets" class="btn primary">

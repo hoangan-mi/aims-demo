@@ -190,9 +190,16 @@ def logout():
     return redirect("/login")
 
 
+import time
+
 @app.route("/")
-@require_role(["admin","manager","user"])
 def home():
+
+    if "room_time" in session:
+        if time.time() - session["room_time"] > 1800:
+            session.pop("current_room", None)
+            session.pop("room_time", None)
+
     return render_template("index.html")
 
 
@@ -334,7 +341,15 @@ def abnormal():
 
     return render_template("abnormal.html", abnormal_assets=abnormal_assets)
 
+@app.route("/scan/<room>")
+def scan_room(room):
 
+    session["current_room"] = room
+
+    import time
+    session["room_time"] = time.time()
+
+    return render_template("scan.html")
 # =========================
 # REPORT WRONG ROOM
 # =========================

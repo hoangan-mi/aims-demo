@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, jsonify
 import csv
 import os
+import time
 from datetime import datetime
 
 app = Flask(__name__)
@@ -8,22 +9,22 @@ app.secret_key = "123456"
 
 
 # =========================
-# KIỂM TRA ROLE
+# CHECK ROLE
 # =========================
 def require_role(roles):
     def wrapper(func):
         def decorated(*args, **kwargs):
+
             if "username" not in session:
                 return redirect("/login")
 
             if session.get("role") not in roles:
-                return "❌ Bạn không có quyền truy cập"
+                return "❌ Không có quyền"
 
             return func(*args, **kwargs)
 
         decorated.__name__ = func.__name__
         return decorated
-
     return wrapper
 
 
@@ -45,7 +46,7 @@ def load_users():
 
 
 # =========================
-# LOAD ASSETS (TÍNH ATS ĐỘNG)
+# LOAD ASSETS
 # =========================
 def load_assets():
     assets = {}
@@ -53,87 +54,45 @@ def load_assets():
     if not os.path.exists("aims.csv"):
         return assets
 
-    # ===== LOAD ALERTS =====
-    alerts_map = {}
-
-    if os.path.exists("alerts.csv"):
-        with open("alerts.csv", newline="", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-
-            for row in reader:
-                aid = row.get("asset_id")
-                t = row.get("type_alert")
-
-                if not aid:
-                    continue
-
-                if aid not in alerts_map:
-                    alerts_map[aid] = {
-                        "damage": 0,
-                        "wrong_room": 0
-                    }
-
-                if t == "damage":
-                    alerts_map[aid]["damage"] += 15
-                elif t == "wrong_room":
-                    alerts_map[aid]["wrong_room"] += 10
-
-    # ===== LOAD ASSETS =====
     with open("aims.csv", newline="", encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
 
         for row in reader:
             asset_id = row.get("ID_assets", "").strip()
 
-            if not asset_id:
-                continue
+            if asset_id:
+                if not row.get("ATS"):
+                    row["ATS"] = "100"
 
-            # ATS gốc
-            try:
-                original_ats = int(row.get("ATS", 100))
-            except:
-                original_ats = 100
-
-            # KHẤU HAO
-            try:
-                year = int(row.get("Year", 2024))
-                years_used = datetime.now().year - year
-                depreciation = max(0, years_used * 3)
-            except:
-                depreciation = 0
-
-            # SỰ CỐ
-            damage_loss = 0
-            wrong_room_loss = 0
-
-            if asset_id in alerts_map:
-                damage_loss = alerts_map[asset_id]["damage"]
-                wrong_room_loss = alerts_map[asset_id]["wrong_room"]
-
-            # ATS CUỐI
-            final_ats = max(0, original_ats - depreciation - damage_loss - wrong_room_loss)
-            row["ATS_value"] = final_ats
-            
-            # HIỂN THỊ
-            detail = []
-
-            if depreciation > 0:
-                detail.append(f"khấu hao: -{depreciation}")
-
-            if damage_loss > 0:
-                detail.append(f"hỏng: -{damage_loss}")
-
-            if wrong_room_loss > 0:
-                detail.append(f"sai phòng: -{wrong_room_loss}")
-
-            if detail:
-                row["ATS_display"] = f"{final_ats} (" + ", ".join(detail) + ")"
-            else:
-                row["ATS_display"] = str(final_ats)
-
-            assets[asset_id] = row
+                assets[asset_id] = row
 
     return assets
+
+
+# =========================
+# UPDATE ATS
+# =========================
+def update_ats(asset_id, minus):
+    rows = []
+
+    with open("aims.csv", newline="", encoding="utf-8-sig") as f:
+        reader = csv.DictReader(f)
+
+        for row in reader:
+            if row.get("ID_assets", "").strip() == asset_id.strip():
+                ats = int(row.get("ATS", 100))
+                ats = max(0, ats - minus)
+                row["ATS"] = str(ats)
+
+            rows.append(row)
+
+    if not rows:
+        return
+
+    with open("aims.csv", "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=rows[0].keys())
+        writer.writeheader()
+        writer.writerows(rows)
 
 
 # =========================
@@ -147,26 +106,23 @@ def save_alert(user, asset_id, expected_room, scanned_room, alert_type, descript
 
         if not file_exists:
             writer.writerow([
-                "user","asset_id","expected_room",
-                "scanned_room","type_alert","description","time"
+                "user", "asset_id", "expected_room",
+                "scanned_room", "type", "description", "time"
             ])
 
         writer.writerow([
-            user,
-            asset_id,
-            expected_room,
-            scanned_room,
-            alert_type,
-            description,
+            user, asset_id, expected_room,
+            scanned_room, alert_type, description,
             datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         ])
 
 
 # =========================
-# LOGIN / LOGOUT / HOME
+# LOGIN
 # =========================
 @app.route("/login", methods=["GET", "POST"])
 def login():
+
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
@@ -177,24 +133,31 @@ def login():
         if user and user["password"] == password:
             session["username"] = username
             session["role"] = user.get("role")
+
             return redirect("/")
 
-        return render_template("login.html", error="Sai tài khoản hoặc mật khẩu")
+        return render_template("login.html", error="Sai tài khoản")
 
     return render_template("login.html")
 
 
+# =========================
+# LOGOUT
+# =========================
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect("/login")
 
 
-import time
-
+# =========================
+# HOME
+# =========================
 @app.route("/")
+@require_role(["admin", "manager", "user"])
 def home():
 
+    # auto reset phòng sau 30p
     if "room_time" in session:
         if time.time() - session["room_time"] > 1800:
             session.pop("current_room", None)
@@ -203,54 +166,42 @@ def home():
     return render_template("index.html")
 
 
+# =========================
+# SCAN PAGE
+# =========================
 @app.route("/scan")
-@require_role(["admin","manager","user"])
-def scan_qr():
+@require_role(["admin", "manager", "user"])
+def scan():
     return render_template("scan.html")
 
 
 # =========================
-# ASSETS LIST
+# SCAN ROOM
 # =========================
-@app.route("/assets")
-@require_role(["admin","manager"])
-def assets():
-    assets = load_assets()
-
-    room = request.args.get("room")
-    asset_type = request.args.get("type")
-
-    result = {}
-
-    for id, asset in assets.items():
-        if room and room.lower() not in asset.get("Room", "").lower():
-            continue
-
-        if asset_type and asset_type.lower() not in asset.get("Type_asset", "").lower():
-            continue
-
-        result[id] = asset
-
-    return render_template("assets.html", assets=result)
+@app.route("/scan-room/<room>")
+def scan_room(room):
+    session["current_room"] = room
+    session["room_time"] = time.time()
+    return jsonify({"status": "ok"})
 
 
 # =========================
-# ASSET DETAIL
+# API SCAN ASSET
 # =========================
-@app.route("/asset/<asset_id>")
-@require_role(["admin","manager","user"])
-def asset_detail(asset_id):
+@app.route("/api/asset/<asset_id>")
+def api_asset(asset_id):
+
+    if "username" not in session:
+        return {"status": "error"}
 
     assets = load_assets()
-    asset = assets.get(asset_id)
+    asset = assets.get(asset_id.strip())
 
     if not asset:
-        return "Không tìm thấy tài sản"
+        return {"status": "error", "message": "not found"}
 
+    # log scan
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    room = asset.get("Room", "").strip()
-    asset_type = asset.get("Type_asset", "").strip()
 
     file_exists = os.path.exists("scan_history.csv")
 
@@ -258,171 +209,67 @@ def asset_detail(asset_id):
         writer = csv.writer(f)
 
         if not file_exists:
-            writer.writerow(["user", "asset_id", "room", "type", "time"])
+            writer.writerow(["user", "asset_id", "room", "time"])
 
         writer.writerow([
             session["username"],
             asset_id,
-            room,
-            asset_type,
+            asset.get("Room"),
             now
         ])
 
-    scanned_room = request.args.get("scan_room")
+    # check sai phòng
+    scanned_room = session.get("current_room")
+    wrong = False
 
-    if scanned_room and scanned_room != room:
-        save_alert(session["username"], asset_id, room, scanned_room, "wrong_room")
-
-    return render_template("asset.html", asset=asset)
-
-
-# =========================
-# REPORT DAMAGE
-# =========================
-@app.route("/report/<asset_id>", methods=["GET", "POST"])
-@require_role(["admin","manager","user"])
-def report(asset_id):
-
-    assets = load_assets()
-    asset = assets.get(asset_id)
-
-    if not asset:
-        return redirect("/scan")
-
-    if request.method == "POST":
-        description = request.form.get("description")
+    if scanned_room and scanned_room != asset.get("Room"):
+        wrong = True
 
         save_alert(
             session["username"],
             asset_id,
             asset.get("Room"),
-            asset.get("Room"),
-            "damage",
-            description
+            scanned_room,
+            "wrong_room"
         )
 
-        return render_template("report_success.html", asset=asset)
+        update_ats(asset_id, 15)
 
-    return render_template("report_form.html", asset=asset)
-
-
-# =========================
-# HISTORY (FIX)
-# =========================
-@app.route("/history")
-@require_role(["admin","manager"])
-def history():
-
-    history = []
-
-    if os.path.exists("scan_history.csv"):
-        with open("scan_history.csv", newline="", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                history.append(row)
-
-    return render_template("history.html", history=history)
+    return {
+        "status": "ok",
+        "data": asset,
+        "wrong_room": wrong
+    }
 
 
 # =========================
-# ABNORMAL (FIX)
+# ASSETS LIST
 # =========================
-@app.route("/abnormal")
-@require_role(["admin"])
-def abnormal():
+@app.route("/assets")
+@require_role(["admin", "manager"])
+def assets():
 
-    abnormal_assets = []
+    assets = load_assets()
+    result = {}
 
-    if os.path.exists("alerts.csv"):
-        with open("alerts.csv", newline="", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                abnormal_assets.append(row)
+    room = request.args.get("room")
+    t = request.args.get("type")
 
-    return render_template("abnormal.html", abnormal_assets=abnormal_assets)
+    for id, a in assets.items():
 
-@app.route("/scan/<room>")
-def scan_room(room):
+        if room and room.lower() not in a.get("Room", "").lower():
+            continue
 
-    session["current_room"] = room
+        if t and t.lower() not in a.get("Type_asset", "").lower():
+            continue
 
-    import time
-    session["room_time"] = time.time()
+        result[id] = a
 
-    return render_template("scan.html")
-# =========================
-# REPORT WRONG ROOM
-# =========================
-@app.route("/report_wrong_room")
-def report_wrong_room():
-
-    asset_id = request.args.get("asset_id")
-    scanned_room = request.args.get("room")
-
-    expected_room = None
-
-    with open("aims.csv", newline='', encoding='utf-8') as f:
-        reader = csv.DictReader(f)
-
-        for row in reader:
-            if row["ID_assets"] == asset_id:
-                expected_room = row["Room"].strip()
-
-    if not expected_room:
-        return "Asset not found"
-
-    save_alert(
-        "admin",
-        asset_id,
-        expected_room,
-        scanned_room,
-        "wrong_room",
-        "Scan sai phòng"
-    )
-
-    return "OK"
-
-
-# =========================
-# DELETE ABNORMAL (FIX)
-# =========================
-@app.route("/delete_abnormal", methods=["POST"])
-@require_role(["admin"])
-def delete_abnormal():
-
-    asset_id = request.form.get("asset_id")
-
-    if not os.path.exists("alerts.csv"):
-        return redirect("/abnormal")
-
-    rows = []
-
-    with open("alerts.csv", newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-
-        for row in reader:
-            # 👉 XÓA alert của tài sản này
-            if row["asset_id"] != asset_id:
-                rows.append(row)
-
-    # GHI LẠI FILE
-    with open("alerts.csv", "w", newline="", encoding="utf-8") as f:
-        fieldnames = [
-            "user","asset_id","expected_room",
-            "scanned_room","type_alert","description","time"
-        ]
-
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-
-        writer.writeheader()
-        writer.writerows(rows)
-
-    return redirect("/abnormal")
+    return render_template("assets.html", assets=result)
 
 
 # =========================
 # RUN
 # =========================
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(debug=True)

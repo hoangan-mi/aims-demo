@@ -204,14 +204,11 @@ def scan_qr():
     return render_template("scan.html")
 
 
-# =========================
-# ASSETS LIST
-# =========================
 @app.route("/assets")
 @require_role(["admin","manager"])
 def assets():
 
-    assets = load_assets()
+    assets = load_assets() or {}
 
     room = request.args.get("room")
     asset_type = request.args.get("type")
@@ -220,11 +217,17 @@ def assets():
 
     for id, asset in assets.items():
 
-        if room and room.lower() not in asset.get("Room", "").lower():
-            continue
+        # FILTER ROOM
+        if room:
+            room_value = str(asset.get("Room", "") or "").lower()
+            if room.lower() not in room_value:
+                continue
 
-        if asset_type and asset_type.lower() not in asset.get("Type_asset", "").lower():
-            continue
+        # FILTER TYPE
+        if asset_type:
+            type_value = str(asset.get("Type_asset", "") or "").lower()
+            if asset_type.lower() not in type_value:
+                continue
 
         result[id] = asset
 

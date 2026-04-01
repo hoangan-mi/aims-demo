@@ -196,9 +196,13 @@ def home():
     return render_template("index.html")
 
 
+# =========================
+# SCAN
+# =========================
 @app.route("/scan")
 @require_role(["admin","manager","user"])
 def scan_qr():
+
     return render_template("scan.html")
 
 
